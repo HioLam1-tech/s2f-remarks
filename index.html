@@ -744,7 +744,10 @@
             </div>
 
             <!-- Main Big Duty Roster Panel -->
-            <div class="flex-1 min-h-0 w-full rounded-3xl bg-[#1a0b05]/80 backdrop-blur-xl border border-amber-500/30 shadow-[0_0_40px_rgba(245,158,11,0.12)] p-5 sm:p-7 lg:p-8 flex flex-col justify-between gap-4 sm:gap-6 overflow-y-auto">
+            <div class="flex-1 min-h-0 w-full rounded-3xl bg-[#1a0b05]/80 backdrop-blur-xl border border-amber-500/30 shadow-[0_0_40px_rgba(245,158,11,0.12)] p-5 sm:p-7 lg:p-8 flex flex-col justify-between gap-4 sm:gap-5 overflow-y-auto">
+                <!-- Duty Date Header -->
+                <div id="dutyDateHeader" class="shrink-0 flex items-center justify-between pb-3 border-b border-amber-500/20"></div>
+
                 <!-- 4 Duty Role Cards -->
                 <div id="dutyRolesGrid" class="flex-1 min-h-0 grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5"></div>
 
@@ -1854,6 +1857,7 @@
                 // 6.5 Duty Roster Data & View (06. 值日)
                 // ==========================================
                 const dutyRosterData = {
+                    dateLabel: '2026年11月26日 (星期五)',
                     roles: [
                         { role: '掃地', name: '鍾鎧汶', classNo: 39 },
                         { role: '總控台', name: '崔韓妃', classNo: 14 },
@@ -1864,9 +1868,24 @@
                 };
 
                 function renderDutyRoster() {
+                    const dateHeaderEl = document.getElementById('dutyDateHeader');
                     const gridEl = document.getElementById('dutyRolesGrid');
                     const reminderEl = document.getElementById('dutySpecialReminderBox');
                     if (!gridEl || !reminderEl) return;
+
+                    if (dateHeaderEl) {
+                        dateHeaderEl.innerHTML = `
+                            <div class="flex items-center gap-2.5 sm:gap-3">
+                                <span class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-amber-500/15 border border-amber-400/35 flex items-center justify-center text-amber-300">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 sm:h-5 sm:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                    </svg>
+                                </span>
+                                <h3 class="text-lg sm:text-2xl font-bold text-amber-100 tracking-wide">${dutyRosterData.dateLabel}</h3>
+                            </div>
+                            <span class="hidden sm:inline-block font-mono text-xs tracking-widest uppercase text-amber-400/70">DAILY DUTY ROSTER</span>
+                        `;
+                    }
 
                     gridEl.innerHTML = dutyRosterData.roles
                         .map((item, index) => {
