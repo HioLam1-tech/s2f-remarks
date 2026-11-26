@@ -70,10 +70,12 @@
         <!-- TOP UTILITY BAR (Macau Status + Lang + Out)-->
         <!-- ========================================== -->
         <header class="shrink-0 w-full flex flex-wrap items-center justify-between gap-3">
-            <!-- Left: Macau Time & School Hours Indicator -->
-            <div class="inline-flex items-center gap-2.5 rounded-full bg-[#1a0b05]/80 backdrop-blur-md border border-amber-500/30 px-3.5 py-1.5 shadow-[0_0_20px_rgba(245,158,11,0.12)]">
+            <!-- Left: Macau Date, Time & School Hours Indicator -->
+            <div class="inline-flex flex-wrap items-center gap-2 sm:gap-2.5 rounded-full bg-[#1a0b05]/80 backdrop-blur-md border border-amber-500/30 px-3.5 py-1.5 shadow-[0_0_20px_rgba(245,158,11,0.12)]">
                 <span id="schoolStatusDot" class="w-2.5 h-2.5 rounded-full bg-gray-400 transition-all duration-300"></span>
                 <span id="schoolStatusText" data-i18n="statusAfterSchool" class="text-xs sm:text-sm font-medium text-amber-100/90">放學時段</span>
+                <span class="text-amber-500/40">|</span>
+                <span id="macauDateText" class="font-mono text-xs sm:text-sm text-amber-200/95 tracking-wide">----年--月--日</span>
                 <span class="text-amber-500/40">|</span>
                 <span id="macauClockText" class="font-mono text-xs sm:text-sm text-amber-300/90 tracking-wider">--:--:--</span>
             </div>
@@ -369,7 +371,7 @@
                     <div class="shrink-0 flex items-center justify-between gap-2 pb-2.5 border-b border-amber-500/20">
                         <div>
                             <span data-i18n="selectedDateLabel" class="block font-mono text-[11px] uppercase tracking-wider text-amber-400/75">查詢日期</span>
-                            <h3 id="selectedDateHeading" class="text-base sm:text-xl font-bold text-amber-100 mt-0.5">2026-11-26</h3>
+                            <h3 id="selectedDateHeading" class="text-base sm:text-xl font-bold text-amber-100 mt-0.5">2026-11-27</h3>
                         </div>
                         <span id="leaveCountBadge" class="hidden rounded-full bg-emerald-500/15 border border-emerald-400/40 px-3 py-1 font-mono text-xs text-emerald-300"></span>
                     </div>
@@ -453,7 +455,7 @@
                     <div class="shrink-0 flex items-center justify-between gap-2 pb-2.5 border-b border-amber-500/20">
                         <div>
                             <span data-i18n="selectedDateLabel" class="block font-mono text-[11px] uppercase tracking-wider text-amber-400/75">查詢日期</span>
-                            <h3 id="hwSelectedDateHeading" class="text-base sm:text-xl font-bold text-amber-100 mt-0.5">2026-11-26</h3>
+                            <h3 id="hwSelectedDateHeading" class="text-base sm:text-xl font-bold text-amber-100 mt-0.5">2026-11-27</h3>
                         </div>
                         <span id="hwCountBadge" class="hidden rounded-full bg-emerald-500/15 border border-emerald-400/40 px-3 py-1 font-mono text-xs text-emerald-300"></span>
                     </div>
@@ -537,7 +539,7 @@
                     <div class="shrink-0 flex items-center justify-between gap-2 pb-2.5 border-b border-amber-500/20">
                         <div>
                             <span data-i18n="selectedDateLabel" class="block font-mono text-[11px] uppercase tracking-wider text-amber-400/75">查詢日期</span>
-                            <h3 id="scSelectedDateHeading" class="text-base sm:text-xl font-bold text-amber-100 mt-0.5">2026-11-26</h3>
+                            <h3 id="scSelectedDateHeading" class="text-base sm:text-xl font-bold text-amber-100 mt-0.5">2026-11-27</h3>
                         </div>
                         <span id="scCountBadge" class="hidden rounded-full bg-emerald-500/15 border border-emerald-400/40 px-3 py-1 font-mono text-xs text-emerald-300"></span>
                     </div>
@@ -621,7 +623,7 @@
                     <div class="shrink-0 flex items-center justify-between gap-2 pb-2.5 border-b border-amber-500/20">
                         <div>
                             <span data-i18n="selectedDateLabel" class="block font-mono text-[11px] uppercase tracking-wider text-amber-400/75">查詢日期</span>
-                            <h3 id="testSelectedDateHeading" class="text-base sm:text-xl font-bold text-amber-100 mt-0.5">2026-11-26</h3>
+                            <h3 id="testSelectedDateHeading" class="text-base sm:text-xl font-bold text-amber-100 mt-0.5">2026-11-27</h3>
                         </div>
                         <span id="testCountBadge" class="hidden rounded-full bg-emerald-500/15 border border-emerald-400/40 px-3 py-1 font-mono text-xs text-emerald-300"></span>
                     </div>
@@ -706,7 +708,7 @@
                     <div class="shrink-0 flex items-center justify-between gap-2 pb-2.5 border-b border-amber-500/20">
                         <div>
                             <span data-i18n="selectedDateLabel" class="block font-mono text-[11px] uppercase tracking-wider text-amber-400/75">查詢日期</span>
-                            <h3 id="actSelectedDateHeading" class="text-base sm:text-xl font-bold text-amber-100 mt-0.5">2026-11-26</h3>
+                            <h3 id="actSelectedDateHeading" class="text-base sm:text-xl font-bold text-amber-100 mt-0.5">2026-11-27</h3>
                         </div>
                         <span id="actCountBadge" class="hidden rounded-full bg-emerald-500/15 border border-emerald-400/40 px-3 py-1 font-mono text-xs text-emerald-300"></span>
                     </div>
@@ -869,7 +871,48 @@
                 };
 
                 let currentLang = 'zh';
-                const TODAY_DATE_STR = '2026-11-26';
+
+                // Helper: Real-time Macau (GMT+8) Date & Time Parts
+                function getMacauDateTimeParts() {
+                    const now = new Date();
+                    const parts = new Intl.DateTimeFormat('en-US', {
+                        timeZone: 'Asia/Macau',
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit',
+                        weekday: 'short',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        second: '2-digit',
+                        hour12: false
+                    }).formatToParts(now);
+
+                    const map = {};
+                    parts.forEach((p) => {
+                        map[p.type] = p.value;
+                    });
+
+                    const yearStr = map.year || '2026';
+                    const monthStr = String(map.month || '11').padStart(2, '0');
+                    const dayStr = String(map.day || '27').padStart(2, '0');
+                    const weekday = map.weekday || 'Fri';
+                    const hourNum = parseInt(map.hour || '0', 10) % 24;
+                    const minNum = parseInt(map.minute || '0', 10);
+                    const secStr = String(map.second || '00').padStart(2, '0');
+
+                    return {
+                        yearStr,
+                        monthStr,
+                        dayStr,
+                        dateStr: `${yearStr}-${monthStr}-${dayStr}`,
+                        weekday,
+                        hourNum,
+                        minNum,
+                        secStr
+                    };
+                }
+
+                let TODAY_DATE_STR = getMacauDateTimeParts().dateStr;
 
                 // ==========================================
                 // 2. Official Leave Data & Calendar (01)
@@ -2157,41 +2200,53 @@
                 document.getElementById('langEnBtn')?.addEventListener('click', () => applyLanguage('en'));
 
                 // ==========================================
-                // 9. Live Macau (GMT+8) Clock & School Status
+                // 9. Live Macau (GMT+8) Date, Clock & Status
                 // ==========================================
                 function updateSchoolStatus() {
                     const dotEl = document.getElementById('schoolStatusDot');
                     const textEl = document.getElementById('schoolStatusText');
+                    const dateEl = document.getElementById('macauDateText');
                     const clockEl = document.getElementById('macauClockText');
                     if (!dotEl || !textEl || !clockEl) return;
 
-                    const now = new Date();
-                    const parts = new Intl.DateTimeFormat('en-US', {
-                        timeZone: 'Asia/Macau',
-                        weekday: 'short',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                        second: '2-digit',
-                        hour12: false
-                    }).formatToParts(now);
+                    const dt = getMacauDateTimeParts();
+                    const totalMins = dt.hourNum * 60 + dt.minNum;
 
-                    const partMap = {};
-                    parts.forEach((p) => {
-                        partMap[p.type] = p.value;
-                    });
+                    if (dateEl) {
+                        dateEl.textContent =
+                            currentLang === 'zh'
+                                ? `${dt.yearStr}年${dt.monthStr}月${dt.dayStr}日`
+                                : dt.dateStr;
+                    }
 
-                    const weekday = partMap.weekday || 'Thu';
-                    const hourNum = parseInt(partMap.hour || '0', 10) % 24;
-                    const minNum = parseInt(partMap.minute || '0', 10);
-                    const secStr = String(partMap.second || '00').padStart(2, '0');
-                    const totalMins = hourNum * 60 + minNum;
+                    const hhStr = String(dt.hourNum).padStart(2, '0');
+                    const mmStr = String(dt.minNum).padStart(2, '0');
+                    clockEl.textContent = `${hhStr}:${mmStr}:${dt.secStr} GMT+8`;
 
-                    const hhStr = String(hourNum).padStart(2, '0');
-                    const mmStr = String(minNum).padStart(2, '0');
-                    clockEl.textContent = `${hhStr}:${mmStr}:${secStr} GMT+8`;
+                    // Automatically advance calendars when a new day starts in Macau
+                    if (dt.dateStr !== TODAY_DATE_STR) {
+                        const previousToday = TODAY_DATE_STR;
+                        TODAY_DATE_STR = dt.dateStr;
+                        if (selectedLeaveDate === previousToday) selectedLeaveDate = TODAY_DATE_STR;
+                        if (selectedHwDate === previousToday) selectedHwDate = TODAY_DATE_STR;
+                        if (selectedScDate === previousToday) selectedScDate = TODAY_DATE_STR;
+                        if (selectedTestDate === previousToday) selectedTestDate = TODAY_DATE_STR;
+                        if (selectedActDate === previousToday) selectedActDate = TODAY_DATE_STR;
 
-                    const isWeekday = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'].includes(weekday);
-                    const isSaturday = weekday === 'Sat';
+                        renderLeaveCalendar();
+                        renderLeaveDetails(selectedLeaveDate);
+                        renderHwCalendar();
+                        renderHwDetails(selectedHwDate);
+                        renderScCalendar();
+                        renderScDetails(selectedScDate);
+                        renderTestCalendar();
+                        renderTestDetails(selectedTestDate);
+                        renderActCalendar();
+                        renderActDetails(selectedActDate);
+                    }
+
+                    const isWeekday = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'].includes(dt.weekday);
+                    const isSaturday = dt.weekday === 'Sat';
 
                     const inMorning = totalMins >= 485 && totalMins <= 735;   // 08:05 ~ 12:15
                     const inAfternoon = totalMins >= 855 && totalMins <= 945; // 14:15 ~ 15:45
