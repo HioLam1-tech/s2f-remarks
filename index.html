@@ -55,6 +55,20 @@
         .animate-shake {
             animation: shake 0.35s ease-in-out;
         }
+
+        @keyframes cardPopIn {
+            0% {
+                opacity: 0;
+                transform: translateY(8px) scale(0.98);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+        .animate-card-pop {
+            animation: cardPopIn 0.32s cubic-bezier(0.22, 1, 0.36, 1) both;
+        }
     </style>
 </head>
 <body class="min-h-screen w-full overflow-x-hidden relative selection:bg-amber-500 selection:text-stone-950">
@@ -355,7 +369,7 @@
                                 <span data-i18n="legendToday">今日</span>
                             </span>
                             <span class="inline-flex items-center gap-1.5 text-emerald-300">
-                                <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                                <span class="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_6px_#34d399]"></span>
                                 <span data-i18n="legendHasLeave">有公假</span>
                             </span>
                         </div>
@@ -382,7 +396,7 @@
             </div>
 
             <div class="shrink-0 w-full flex justify-end mt-2 sm:mt-2.5">
-                <span data-i18n="lastUpdatedLeave" class="font-mono text-xs sm:text-sm text-amber-200/70 tracking-wide">最後更新時間: 2026-11-26</span>
+                <span data-i18n="lastUpdatedLeave" class="font-mono text-xs sm:text-sm text-amber-200/70 tracking-wide">最後更新時間: 2026-11-27 22:10</span>
             </div>
         </section>
 
@@ -439,7 +453,7 @@
                                 <span data-i18n="legendToday">今日</span>
                             </span>
                             <span class="inline-flex items-center gap-1.5 text-emerald-300">
-                                <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                                <span class="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_6px_#34d399]"></span>
                                 <span data-i18n="legendHasHw">有功課</span>
                             </span>
                         </div>
@@ -466,7 +480,7 @@
             </div>
 
             <div class="shrink-0 w-full flex justify-end mt-2 sm:mt-2.5">
-                <span data-i18n="lastUpdatedLeave" class="font-mono text-xs sm:text-sm text-amber-200/70 tracking-wide">最後更新時間: 2026-11-26</span>
+                <span data-i18n="lastUpdatedLeave" class="font-mono text-xs sm:text-sm text-amber-200/70 tracking-wide">最後更新時間: 2026-11-27 22:10</span>
             </div>
         </section>
 
@@ -523,7 +537,7 @@
                                 <span data-i18n="legendToday">今日</span>
                             </span>
                             <span class="inline-flex items-center gap-1.5 text-emerald-300">
-                                <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                                <span class="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_6px_#34d399]"></span>
                                 <span data-i18n="legendHasSc">有調/代課</span>
                             </span>
                         </div>
@@ -550,7 +564,7 @@
             </div>
 
             <div class="shrink-0 w-full flex justify-end mt-2 sm:mt-2.5">
-                <span data-i18n="lastUpdatedLeave" class="font-mono text-xs sm:text-sm text-amber-200/70 tracking-wide">最後更新時間: 2026-11-26</span>
+                <span data-i18n="lastUpdatedLeave" class="font-mono text-xs sm:text-sm text-amber-200/70 tracking-wide">最後更新時間: 2026-11-27 22:10</span>
             </div>
         </section>
 
@@ -607,7 +621,7 @@
                                 <span data-i18n="legendToday">今日</span>
                             </span>
                             <span class="inline-flex items-center gap-1.5 text-emerald-300">
-                                <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                                <span class="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_6px_#34d399]"></span>
                                 <span data-i18n="legendHasTest">有測驗</span>
                             </span>
                         </div>
@@ -634,7 +648,7 @@
             </div>
 
             <div class="shrink-0 w-full flex justify-end mt-2 sm:mt-2.5">
-                <span data-i18n="lastUpdatedLeave" class="font-mono text-xs sm:text-sm text-amber-200/70 tracking-wide">最後更新時間: 2026-11-26</span>
+                <span data-i18n="lastUpdatedLeave" class="font-mono text-xs sm:text-sm text-amber-200/70 tracking-wide">最後更新時間: 2026-11-27 22:10</span>
             </div>
         </section>
 
@@ -692,7 +706,7 @@
                                 <span data-i18n="legendToday">今日</span>
                             </span>
                             <span class="inline-flex items-center gap-1.5 text-emerald-300">
-                                <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                                <span class="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_6px_#34d399]"></span>
                                 <span data-i18n="legendHasAct">有活動</span>
                             </span>
                         </div>
@@ -719,7 +733,7 @@
             </div>
 
             <div class="shrink-0 w-full flex justify-end mt-2 sm:mt-2.5">
-                <span data-i18n="lastUpdatedAct" class="font-mono text-xs sm:text-sm text-amber-200/70 tracking-wide">最後更新時間: 2026-11-27</span>
+                <span data-i18n="lastUpdatedAct" class="font-mono text-xs sm:text-sm text-amber-200/70 tracking-wide">最後更新時間: 2026-11-27 22:10</span>
             </div>
         </section>
 
@@ -759,7 +773,7 @@
             </div>
 
             <div class="shrink-0 w-full flex justify-end mt-2 sm:mt-2.5">
-                <span data-i18n="lastUpdatedLeave" class="font-mono text-xs sm:text-sm text-amber-200/70 tracking-wide">最後更新時間: 2026-11-26</span>
+                <span data-i18n="lastUpdatedLeave" class="font-mono text-xs sm:text-sm text-amber-200/70 tracking-wide">最後更新時間: 2026-11-27 22:10</span>
             </div>
         </section>
     </main>
@@ -817,16 +831,16 @@
                         noActMsg: '本日暫無學校活動安排。',
                         peopleUnit: '人',
                         itemsUnit: '項',
-                        lastUpdatedLeave: '最後更新時間: 2026-11-26',
-                        lastUpdatedAct: '最後更新時間: 2026-11-27',
+                        lastUpdatedLeave: '最後更新時間: 2026-11-27 22:10',
+                        lastUpdatedAct: '最後更新時間: 2026-11-27 22:10',
                         dutyDateTitle: '值日日期',
-                        dutyDateDisplay: '2026年11月27日 (星期五)',
+                        dutyDateDisplay: '2026年11月28日 (六)',
                         dutySweep: '掃地',
                         dutyConsole: '總控台',
                         dutyBlackboard: '擦黑板',
                         dutyTrash: '倒垃圾',
                         dutySpecialTitle: '特別提醒',
-                        dutySpecialDetail: '鍾鎧汶 (39) -- 4天'
+                        dutySpecialDetail: '鍾鎧汶 (39) -- 3天'
                     },
                     en: {
                         systemAccess: 'SYSTEM ACCESS',
@@ -871,16 +885,16 @@
                         noActMsg: 'No school activities scheduled for this date.',
                         peopleUnit: 'Students',
                         itemsUnit: 'Items',
-                        lastUpdatedLeave: 'Last Updated: 2026-11-26',
-                        lastUpdatedAct: 'Last Updated: 2026-11-27',
+                        lastUpdatedLeave: 'Last Updated: 2026-11-27 22:10',
+                        lastUpdatedAct: 'Last Updated: 2026-11-27 22:10',
                         dutyDateTitle: 'DUTY DATE',
-                        dutyDateDisplay: '2026年11月27日 (星期五)',
+                        dutyDateDisplay: '2026年11月28日 (六)',
                         dutySweep: 'Sweeping (掃地)',
                         dutyConsole: 'Main Console (總控台)',
                         dutyBlackboard: 'Blackboard (擦黑板)',
                         dutyTrash: 'Trash Duty (倒垃圾)',
                         dutySpecialTitle: 'Special Reminder (特別提醒)',
-                        dutySpecialDetail: '鍾鎧汶 (39) -- 4天'
+                        dutySpecialDetail: '鍾鎧汶 (39) -- 3天'
                     }
                 };
 
@@ -908,72 +922,306 @@
                 }
 
                 // ==========================================
-                // 3. Portal Datasets
+                // 3. Portal Datasets (Boxes 01 - 05)
                 // ==========================================
                 const officialLeaveData = {
                     '2026-11-27': [
-                        '1. 王梓悠 (1)',
-                        '2. 吳奕恩 (3)',
-                        '3. 林建璋 (11)',
-                        '4. 陳澤楷 (23)',
-                        '5. 黃胤澤 (25)',
-                        '6. 葉柏豪 (30)',
-                        '7. 劉承之 (33)',
-                        '8. 鄧正謙 (36)',
-                        '9. 關芷晴 (41)',
-                        '10. 關藹琳 (42)'
+                        '王梓悠 (1)',
+                        '吳奕恩 (3)',
+                        '林建璋 (11)',
+                        '陳澤楷 (23)',
+                        '黃胤澤 (25)',
+                        '葉柏豪 (30)',
+                        '劉承之 (33)',
+                        '鄧正謙 (36)',
+                        '關芷晴 (41)',
+                        '關藹琳 (42)'
                     ],
                     '2026-11-28': [
-                        '1. 王梓悠 (1)',
-                        '2. 吳奕恩 (3)',
-                        '3. 周琬兒 (9)',
-                        '4. 林建璋 (11)',
-                        '5. 張欣蔓 (15)',
-                        '6. 莫梓明 (18)',
-                        '7. 許思然 (19)',
-                        '8. 陳心喬 (20)',
-                        '9. 陳澤楷 (23)',
-                        '10. 黃胤澤 (25)',
-                        '11. 黃詠彤 (28)',
-                        '12. 葉柏豪 (30)',
-                        '13. 趙文濼 (31)',
-                        '14. 劉承之 (33)',
-                        '15. 劉芷琪 (34)',
-                        '16. 蔡智晴 (35)',
-                        '17. 鄧正謙 (36)',
-                        '18. 關芷晴 (41)',
-                        '19. 關藹琳 (42)'
+                        '王梓悠 (1)',
+                        '吳奕恩 (3)',
+                        '周琬兒 (9)',
+                        '林建璋 (11)',
+                        '張欣蔓 (15)',
+                        '莫梓明 (18)',
+                        '許思然 (19)',
+                        '陳心喬 (20)',
+                        '陳澤楷 (23)',
+                        '黃胤澤 (25)',
+                        '黃詠彤 (28)',
+                        '葉柏豪 (30)',
+                        '趙文濼 (31)',
+                        '劉承之 (33)',
+                        '劉芷琪 (34)',
+                        '蔡智晴 (35)',
+                        '鄧正謙 (36)',
+                        '關芷晴 (41)',
+                        '關藹琳 (42)'
                     ],
                     '2026-11-29': [
-                        '1. 王梓悠 (1)',
-                        '2. 吳奕恩 (3)',
-                        '3. 林建璋 (11)',
-                        '4. 陳澤楷 (23)',
-                        '5. 黃胤澤 (25)',
-                        '6. 葉柏豪 (30)',
-                        '7. 劉承之 (33)',
-                        '8. 鄧正謙 (36)',
-                        '9. 關芷晴 (41)',
-                        '10. 關藹琳 (42)'
+                        '王梓悠 (1)',
+                        '吳奕恩 (3)',
+                        '林建璋 (11)',
+                        '陳澤楷 (23)',
+                        '黃胤澤 (25)',
+                        '葉柏豪 (30)',
+                        '劉承之 (33)',
+                        '鄧正謙 (36)',
+                        '關芷晴 (41)',
+                        '關藹琳 (42)'
                     ],
                     '2026-11-30': [
-                        '1. 許思然 (19)'
+                        '許思然 (19)'
                     ],
-                    '2026-12-01': ['1. 許思然 (19)', '2. 關芷晴 (41)'],
-                    '2026-12-02': ['1. 許思然 (19)', '2. 關芷晴 (41)'],
-                    '2026-12-03': ['1. 許思然 (19)', '2. 關芷晴 (41)'],
-                    '2026-12-04': ['1. 許思然 (19)', '2. 關芷晴 (41)'],
-                    '2026-12-05': ['1. 許思然 (19)', '2. 關芷晴 (41)']
+                    '2026-12-01': ['許思然 (19)', '關芷晴 (41)'],
+                    '2026-12-02': ['許思然 (19)', '關芷晴 (41)'],
+                    '2026-12-03': ['許思然 (19)', '關芷晴 (41)'],
+                    '2026-12-04': ['許思然 (19)', '關芷晴 (41)'],
+                    '2026-12-05': ['關芷晴 (41)']
                 };
 
-                const homeworkData = {};
-                const scheduleChangeData = {};
-                const testData = {
-                    '2026-12-05': ['English Graded Reading']
+                const homeworkData = {
+                    '2026-12-02': [
+                        {
+                            subject: '設科',
+                            groups: [
+                                {
+                                    name: '吳sir半班',
+                                    tasks: [
+                                        'Week 12 -- 打字',
+                                        'Logbook -- 第二段第二課 "力的種類、表示與作用效果"',
+                                        'K230 -- 第五課 "看見顏色"',
+                                        '科學學習系統預習 -- 第三課 "質量、重力、合力與二力平衡"'
+                                    ]
+                                },
+                                {
+                                    name: '李sir半班',
+                                    tasks: [
+                                        'Onshape -- 書簽',
+                                        '科學學習系統預習 -- 第三課 "質量、重力、合力與二力平衡"'
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
                 };
+
+                const scheduleChangeData = {
+                    '2026-11-30': [
+                        {
+                            period: '第四堂',
+                            from: '品德公民',
+                            to: '代數'
+                        },
+                        {
+                            period: '第四、五堂',
+                            note: '由吳倩瀅老師代兩堂代數'
+                        }
+                    ],
+                    '2026-12-03': [
+                        {
+                            period: '第四堂',
+                            from: '代數',
+                            to: '中文'
+                        }
+                    ],
+                    '2026-12-04': [
+                        {
+                            period: '第五堂',
+                            from: '代數',
+                            to: '地理'
+                        }
+                    ],
+                    '2026-12-05': [
+                        {
+                            period: '第四堂',
+                            from: '中文',
+                            to: '代數'
+                        },
+                        {
+                            period: '第五堂',
+                            from: '地理',
+                            to: '代數'
+                        }
+                    ]
+                };
+
+                const testData = {
+                    '2026-11-28': [
+                        {
+                            subject: '英文',
+                            title: 'English Graded Reading',
+                            details: []
+                        }
+                    ],
+                    '2026-12-04': [
+                        {
+                            subject: '英文',
+                            title: 'English Dictation',
+                            details: [
+                                'OEF Unit 4 Text 1 Para. 2-5',
+                                'One Extra Passage (See the attachment on eClass)'
+                            ]
+                        }
+                    ],
+                    '2026-12-05': [
+                        {
+                            subject: '英文',
+                            title: 'English Graded Reading',
+                            details: []
+                        }
+                    ],
+                    '2026-12-07': [
+                        {
+                            subject: '數學',
+                            title: '數學基力',
+                            details: [
+                                '代數: 9.1 分式的概念 至 9.3 分式的乘除法',
+                                '幾何: 1.6 線段垂直平分線 至 1.7 軸對稱'
+                            ]
+                        }
+                    ],
+                    '2026-12-08': [
+                        {
+                            subject: '中文',
+                            title: '中文大測',
+                            details: [
+                                '詳讀：《孔乙己》、《感遇》、《西塞山懷古》',
+                                '自讀：《從軍行》、《惡蚊》、《遊山西村》',
+                                '默寫：《感遇》、《西塞山懷古》、《遊山西村》、名句（1-8）',
+                                '成語：常見近義成語辨析(54-57)、重點成語(98-106)',
+                                '名句：1-8',
+                                '語基：是字句及存現句',
+                                '中國文學常識、澳門文化常識',
+                                '文言文閱讀理解',
+                                '材料分析'
+                            ]
+                        }
+                    ],
+                    '2026-12-11': [
+                        {
+                            subject: '英文',
+                            title: 'R+S Oral Presentation',
+                            details: [
+                                'A Christmas Carol (all chapters)'
+                            ]
+                        }
+                    ],
+                    '2026-12-18': [
+                        {
+                            subject: '英文',
+                            title: 'R+S Oral Presentation',
+                            details: [
+                                'A Christmas Carol (all chapters)'
+                            ]
+                        },
+                        {
+                            subject: '英文',
+                            title: 'English GE Test',
+                            sections: [
+                                {
+                                    heading: 'Reading Comprehension',
+                                    items: [
+                                        'Seen Forward 2A Unit 4 Text 1 (p. 100-101) + 2 (p. 104-105)',
+                                        'Unseen'
+                                    ]
+                                },
+                                {
+                                    heading: 'Usage',
+                                    items: [
+                                        '9 tenses + 4 types of Conditionals',
+                                        'Question Tags',
+                                        'Relative Clauses'
+                                    ]
+                                },
+                                {
+                                    heading: 'Vocabulary',
+                                    items: [
+                                        'word lists on Text 1 (p. 100-101) + Life Skill (p.108) + Vocabulary building skill (p. 109)'
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                };
+
                 const activityData = {
-                    '2026-12-02': ['聖誕攤位前會議'],
-                    '2026-12-15': ['交聖誕壁報']
+                    '2026-11-27': [
+                        {
+                            time: '10:30 ~ 12:15',
+                            title: '參觀美術館'
+                        }
+                    ],
+                    '2026-11-30': [
+                        {
+                            time: '第三堂',
+                            title: '遠足前會議'
+                        }
+                    ],
+                    '2026-12-02': [
+                        {
+                            time: '15:50 ~ 16:30',
+                            title: '聖誕攤位前會議',
+                            location: '位置: 圖書館H406',
+                            details: [
+                                '交園遊會攤位借用物品憑條',
+                                '確認攤位名稱',
+                                '抽簽攤位位置'
+                            ]
+                        }
+                    ],
+                    '2026-12-12': [
+                        {
+                            time: '上午',
+                            title: '遠足'
+                        },
+                        {
+                            time: '下午',
+                            title: 'BBQ'
+                        }
+                    ],
+                    '2026-12-15': [
+                        {
+                            title: '交聖誕壁報'
+                        }
+                    ],
+                    '2026-12-16': [
+                        {
+                            time: '全天',
+                            title: '去澳門大學上課'
+                        }
+                    ],
+                    '2026-12-19': [
+                        {
+                            time: '上午',
+                            title: '聖誕聯歡'
+                        },
+                        {
+                            time: '下午',
+                            title: '聖誕攤位'
+                        }
+                    ],
+                    '2026-12-20': [
+                        {
+                            time: '全天',
+                            title: '澳門回歸日 (放假)',
+                            isHoliday: true
+                        }
+                    ],
+                    '2026-12-21': [{ time: '全天', title: '聖誕假 (放假)', isHoliday: true, range: '2026-12-21 ~ 2026-12-31' }],
+                    '2026-12-22': [{ time: '全天', title: '聖誕假 (放假)', isHoliday: true, range: '2026-12-21 ~ 2026-12-31' }],
+                    '2026-12-23': [{ time: '全天', title: '聖誕假 (放假)', isHoliday: true, range: '2026-12-21 ~ 2026-12-31' }],
+                    '2026-12-24': [{ time: '全天', title: '聖誕假 (放假)', isHoliday: true, range: '2026-12-21 ~ 2026-12-31' }],
+                    '2026-12-25': [{ time: '全天', title: '聖誕假 (放假)', isHoliday: true, range: '2026-12-21 ~ 2026-12-31' }],
+                    '2026-12-26': [{ time: '全天', title: '聖誕假 (放假)', isHoliday: true, range: '2026-12-21 ~ 2026-12-31' }],
+                    '2026-12-27': [{ time: '全天', title: '聖誕假 (放假)', isHoliday: true, range: '2026-12-21 ~ 2026-12-31' }],
+                    '2026-12-28': [{ time: '全天', title: '聖誕假 (放假)', isHoliday: true, range: '2026-12-21 ~ 2026-12-31' }],
+                    '2026-12-29': [{ time: '全天', title: '聖誕假 (放假)', isHoliday: true, range: '2026-12-21 ~ 2026-12-31' }],
+                    '2026-12-30': [{ time: '全天', title: '聖誕假 (放假)', isHoliday: true, range: '2026-12-21 ~ 2026-12-31' }],
+                    '2026-12-31': [{ time: '全天', title: '聖誕假 (放假)', isHoliday: true, range: '2026-12-21 ~ 2026-12-31' }],
+                    '2027-01-01': [{ time: '全天', title: '元旦 (放假)', isHoliday: true, range: '2027-01-01 ~ 2027-01-03' }],
+                    '2027-01-02': [{ time: '全天', title: '元旦 (放假)', isHoliday: true, range: '2027-01-01 ~ 2027-01-03' }],
+                    '2027-01-03': [{ time: '全天', title: '元旦 (放假)', isHoliday: true, range: '2027-01-01 ~ 2027-01-03' }]
                 };
 
                 // ==========================================
@@ -1141,24 +1389,32 @@
                         btn.type = 'button';
                         btn.setAttribute('aria-label', dateStr);
 
-                        let baseClass = 'relative w-full h-full min-h-[38px] sm:min-h-[44px] rounded-xl sm:rounded-2xl flex flex-col items-center justify-center font-mono text-xs sm:text-sm transition-all cursor-pointer border ';
+                        let baseClass = 'group relative w-full h-full min-h-[38px] sm:min-h-[44px] rounded-xl sm:rounded-2xl flex flex-col items-center justify-center font-mono text-xs sm:text-sm transition-all duration-300 cursor-pointer border ';
 
                         if (isPassed) {
                             baseClass += isSelected
                                 ? 'bg-white/15 border-gray-400/70 text-gray-300 font-bold '
                                 : 'bg-white/[0.04] border-white/10 text-gray-500 hover:bg-white/10 hover:text-gray-300 ';
+                        } else if (hasItems) {
+                            if (isSelected) {
+                                baseClass += 'bg-emerald-500/25 border-emerald-400 text-amber-50 font-bold shadow-[0_0_20px_rgba(52,211,153,0.4)] hover:-translate-y-0.5 ';
+                            } else if (isToday) {
+                                baseClass += 'bg-gradient-to-br from-amber-500/25 to-emerald-500/20 border-emerald-400/80 text-amber-100 font-bold shadow-[0_0_16px_rgba(52,211,153,0.28)] hover:border-emerald-300 hover:-translate-y-0.5 hover:shadow-[0_0_22px_rgba(52,211,153,0.42)] ';
+                            } else {
+                                baseClass += 'bg-emerald-500/12 border-emerald-400/50 text-amber-100 font-semibold shadow-[0_0_14px_rgba(16,185,129,0.2)] hover:bg-emerald-500/20 hover:border-emerald-300 hover:-translate-y-0.5 hover:shadow-[0_0_20px_rgba(52,211,153,0.38)] ';
+                            }
                         } else if (isSelected) {
-                            baseClass += 'bg-amber-500/25 border-amber-400 text-amber-100 font-bold shadow-[0_0_16px_rgba(245,158,11,0.3)] ';
+                            baseClass += 'bg-amber-500/25 border-amber-400 text-amber-100 font-bold shadow-[0_0_16px_rgba(245,158,11,0.3)] hover:-translate-y-0.5 ';
                         } else if (isToday) {
-                            baseClass += 'bg-amber-500/15 border-amber-400/70 text-amber-200 font-bold hover:bg-amber-500/25 ';
+                            baseClass += 'bg-amber-500/15 border-amber-400/70 text-amber-200 font-bold hover:bg-amber-500/25 hover:-translate-y-0.5 hover:shadow-[0_0_14px_rgba(245,158,11,0.25)] ';
                         } else {
-                            baseClass += 'bg-[#120703]/70 border-amber-500/20 text-amber-100/90 hover:border-amber-400/60 hover:bg-amber-500/10 ';
+                            baseClass += 'bg-[#120703]/70 border-amber-500/20 text-amber-100/90 hover:border-amber-400/60 hover:bg-amber-500/10 hover:-translate-y-0.5 ';
                         }
 
                         btn.className = baseClass;
                         btn.innerHTML = `
                             <span>${day}</span>
-                            ${hasItems && !isPassed ? '<span class="mt-0.5 w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_#34d399]"></span>' : ''}
+                            ${hasItems && !isPassed ? '<span class="mt-0.5 w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399] group-hover:scale-125 transition-transform"></span>' : ''}
                         `;
 
                         btn.addEventListener('click', () => {
@@ -1207,15 +1463,18 @@
                     badgeEl.classList.remove('hidden');
                     badgeEl.textContent = `${list.length} ${translations[currentLang].peopleUnit}`;
 
+                    const cardStyleClass = 'animate-card-pop group relative overflow-hidden rounded-2xl bg-gradient-to-br from-amber-500/20 via-[#261107]/90 to-orange-500/12 hover:from-amber-500/32 hover:via-amber-500/18 hover:to-orange-500/25 border border-amber-400/50 hover:border-amber-300 px-3.5 py-2 flex items-center justify-between gap-2 shadow-[inset_0_1px_0_rgba(254,243,199,0.22),0_4px_18px_rgba(245,158,11,0.15)] hover:shadow-[inset_0_1px_0_rgba(254,243,199,0.4),0_0_26px_rgba(251,191,36,0.38)] hover:-translate-y-0.5 active:scale-[0.99] transition-all duration-300';
+
                     // Use 10-slot grid (2 columns x 5 rows) when <= 10 people so 1 or 2 names stay in the first slot(s) without stretching
                     if (list.length <= 10) {
-                        contentEl.className = 'mt-3 flex-1 min-h-0 overflow-y-auto pr-1 grid grid-cols-2 grid-rows-5 gap-2 sm:gap-2.5';
+                        contentEl.className = 'mt-3 pt-1 flex-1 min-h-0 overflow-y-auto pr-1 grid grid-cols-2 grid-rows-5 gap-2 sm:gap-2.5';
                         let html = '';
                         for (let i = 0; i < 10; i++) {
                             if (i < list.length) {
                                 html += `
-                                    <div class="rounded-2xl bg-[#120703]/80 border border-amber-500/25 px-3 py-2 flex items-center justify-between gap-2">
-                                        <span class="text-xs sm:text-sm font-medium text-amber-50 truncate">${list[i]}</span>
+                                    <div style="animation-delay: ${i * 35}ms" class="${cardStyleClass}">
+                                        <span class="text-xs sm:text-sm font-semibold text-amber-50 group-hover:text-amber-200 truncate transition-colors">${list[i]}</span>
+                                        <span class="w-2 h-2 shrink-0 rounded-full bg-amber-400 shadow-[0_0_8px_#fbbf24] group-hover:scale-125 group-hover:bg-amber-300 transition-all"></span>
                                     </div>
                                 `;
                             } else {
@@ -1224,10 +1483,11 @@
                         }
                         contentEl.innerHTML = html;
                     } else {
-                        contentEl.className = 'mt-3 flex-1 min-h-0 overflow-y-auto pr-1 grid grid-cols-2 gap-2 sm:gap-2.5 content-start';
-                        contentEl.innerHTML = list.map((entry) => `
-                            <div class="rounded-2xl bg-[#120703]/80 border border-amber-500/25 px-3 py-2 flex items-center justify-between gap-2">
-                                <span class="text-xs sm:text-sm font-medium text-amber-50 truncate">${entry}</span>
+                        contentEl.className = 'mt-3 pt-1 flex-1 min-h-0 overflow-y-auto pr-1 grid grid-cols-2 gap-2 sm:gap-2.5 content-start';
+                        contentEl.innerHTML = list.map((entry, idx) => `
+                            <div style="animation-delay: ${Math.min(idx, 12) * 30}ms" class="${cardStyleClass}">
+                                <span class="text-xs sm:text-sm font-semibold text-amber-50 group-hover:text-amber-200 truncate transition-colors">${entry}</span>
+                                <span class="w-2 h-2 shrink-0 rounded-full bg-amber-400 shadow-[0_0_8px_#fbbf24] group-hover:scale-125 group-hover:bg-amber-300 transition-all"></span>
                             </div>
                         `).join('');
                     }
@@ -1265,15 +1525,353 @@
                         return;
                     }
 
+                    const hasStructuredGroups = items.some((entry) => entry && typeof entry === 'object' && Array.isArray(entry.groups));
+
+                    if (hasStructuredGroups) {
+                        const totalTasks = items.reduce((sum, entry) => {
+                            if (entry && Array.isArray(entry.groups)) {
+                                return sum + entry.groups.reduce((gSum, g) => gSum + (g.tasks ? g.tasks.length : 0), 0);
+                            }
+                            return sum + 1;
+                        }, 0);
+
+                        badgeEl.classList.remove('hidden');
+                        badgeEl.textContent = currentLang === 'zh'
+                            ? `${items.length} 科 · ${totalTasks} 項`
+                            : `${items.length} Subject · ${totalTasks} Tasks`;
+
+                        contentEl.className = 'mt-3 pt-1 flex-1 min-h-0 overflow-y-auto pr-1 space-y-3.5';
+                        contentEl.innerHTML = items.map((entry, idx) => {
+                            const groupsHtml = entry.groups.map((grp, gIdx) => {
+                                const isFirstGroup = gIdx % 2 === 0;
+                                const accentDot = isFirstGroup
+                                    ? 'bg-amber-400 shadow-[0_0_8px_#fbbf24]'
+                                    : 'bg-orange-400 shadow-[0_0_8px_#fb923c]';
+                                const groupCardBorder = isFirstGroup
+                                    ? 'border-amber-500/30 hover:border-amber-400/50'
+                                    : 'border-orange-500/30 hover:border-orange-400/50';
+                                const badgePillClass = isFirstGroup
+                                    ? 'bg-amber-500/20 border-amber-400/45 text-amber-200'
+                                    : 'bg-orange-500/20 border-orange-400/45 text-orange-200';
+
+                                const tasksHtml = grp.tasks.map((taskStr, tIdx) => {
+                                    const parts = taskStr.split(' -- ');
+                                    const formattedTask = parts.length === 2
+                                        ? `<div class="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                                                <span class="inline-flex items-center rounded-lg ${badgePillClass} border px-2 py-0.5 text-[11px] sm:text-xs font-semibold tracking-wide">${parts[0]}</span>
+                                                <span class="text-xs sm:text-sm font-medium text-amber-50/95 leading-snug">${parts[1]}</span>
+                                           </div>`
+                                        : `<span class="text-xs sm:text-sm font-medium text-amber-50/95 leading-snug">${taskStr}</span>`;
+
+                                    return `
+                                        <li style="animation-delay: ${(gIdx * 4 + tIdx) * 35}ms" class="animate-card-pop group flex items-start gap-2.5 rounded-xl bg-gradient-to-r from-white/[0.04] to-transparent hover:from-amber-500/14 hover:to-orange-500/8 border border-amber-500/15 hover:border-amber-400/45 px-3 py-2.5 transition-all duration-200">
+                                            <span class="mt-0.5 w-5 h-5 shrink-0 rounded-lg bg-amber-500/20 border border-amber-400/45 flex items-center justify-center font-mono text-[11px] font-bold text-amber-300 group-hover:scale-105 transition-transform">${tIdx + 1}</span>
+                                            <div class="flex-1 min-w-0">${formattedTask}</div>
+                                        </li>
+                                    `;
+                                }).join('');
+
+                                return `
+                                    <div class="rounded-2xl bg-[#120703]/85 border ${groupCardBorder} p-3.5 sm:p-4 space-y-2.5 transition-colors duration-300">
+                                        <div class="flex items-center justify-between gap-2 pb-2 border-b border-amber-500/15">
+                                            <div class="inline-flex items-center gap-2">
+                                                <span class="w-2.5 h-2.5 rounded-full ${accentDot}"></span>
+                                                <span class="text-sm sm:text-base font-bold tracking-wide text-amber-100">${grp.name}</span>
+                                            </div>
+                                            <span class="rounded-full bg-amber-500/12 border border-amber-500/30 px-2.5 py-0.5 font-mono text-[11px] font-medium text-amber-300/90">${grp.tasks.length} ${translations[currentLang].itemsUnit}</span>
+                                        </div>
+                                        <ul class="space-y-2">
+                                            ${tasksHtml}
+                                        </ul>
+                                    </div>
+                                `;
+                            }).join('');
+
+                            return `
+                                <div style="animation-delay: ${idx * 45}ms" class="animate-card-pop relative overflow-hidden rounded-2xl bg-gradient-to-br from-amber-500/20 via-[#261107]/90 to-orange-500/12 border border-amber-400/50 p-4 sm:p-4.5 shadow-[inset_0_1px_0_rgba(254,243,199,0.24),0_6px_24px_rgba(245,158,11,0.18)] space-y-3">
+                                    <div class="flex items-center justify-between gap-2">
+                                        <div class="flex items-center gap-2.5">
+                                            <span class="w-7 h-7 shrink-0 rounded-xl bg-amber-500/25 border border-amber-400/55 flex items-center justify-center font-mono text-xs font-bold text-amber-300 shadow-[0_0_12px_rgba(245,158,11,0.28)]">0${idx + 1}</span>
+                                            <h4 class="text-base sm:text-lg font-bold tracking-wide text-amber-50">${entry.subject}</h4>
+                                        </div>
+                                        <span class="rounded-full bg-amber-500/15 border border-amber-400/40 px-2.5 py-0.5 font-mono text-[11px] text-amber-200">${entry.groups.length} ${currentLang === 'zh' ? '組別' : 'Groups'}</span>
+                                    </div>
+                                    <div class="space-y-2.5">
+                                        ${groupsHtml}
+                                    </div>
+                                </div>
+                            `;
+                        }).join('');
+                        return;
+                    }
+
+                    const hasSchedulePeriods = items.some((entry) => entry && typeof entry === 'object' && typeof entry.period === 'string');
+
+                    if (hasSchedulePeriods) {
+                        badgeEl.classList.remove('hidden');
+                        badgeEl.textContent = `${items.length} ${translations[currentLang].itemsUnit}`;
+
+                        const buildScheduleCard = (entry, idx) => {
+                            const isSubNote = Boolean(entry.note);
+                            const bodyHtml = isSubNote
+                                ? `
+                                    <div class="flex flex-wrap items-center gap-2 pt-1">
+                                        <span class="inline-flex items-center gap-1.5 rounded-lg bg-emerald-500/20 border border-emerald-400/45 px-2.5 py-1 text-xs font-semibold text-emerald-200">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_#34d399]"></span>
+                                            <span>${currentLang === 'zh' ? '代課安排' : 'Substitute'}</span>
+                                        </span>
+                                        <span class="text-sm sm:text-base font-bold text-amber-50 leading-snug">${entry.note}</span>
+                                    </div>
+                                `
+                                : `
+                                    <div class="flex flex-wrap items-center gap-2 sm:gap-2.5 pt-1">
+                                        <span class="inline-flex items-center rounded-xl bg-white/[0.06] border border-amber-500/25 px-3 py-1 text-xs sm:text-sm font-medium text-amber-200/80 line-through decoration-amber-400/60">
+                                            ${entry.from}
+                                        </span>
+                                        <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-amber-500/20 border border-amber-400/45 text-amber-300 shrink-0">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.4">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                                            </svg>
+                                        </span>
+                                        <span class="inline-flex items-center rounded-xl bg-gradient-to-r from-amber-500/28 to-orange-500/22 border border-amber-400/60 px-3.5 py-1 text-xs sm:text-sm font-bold text-amber-50 shadow-[0_0_14px_rgba(245,158,11,0.22)]">
+                                            ${entry.to}
+                                        </span>
+                                    </div>
+                                `;
+
+                            return `
+                                <div style="animation-delay: ${idx * 45}ms" class="animate-card-pop group relative overflow-hidden rounded-2xl bg-gradient-to-br from-amber-500/20 via-[#261107]/90 to-orange-500/12 hover:from-amber-500/32 hover:via-amber-500/18 hover:to-orange-500/25 border border-amber-400/50 hover:border-amber-300 p-3.5 sm:p-4 flex flex-col justify-between gap-2 shadow-[inset_0_1px_0_rgba(254,243,199,0.22),0_4px_18px_rgba(245,158,11,0.15)] hover:shadow-[inset_0_1px_0_rgba(254,243,199,0.4),0_0_26px_rgba(251,191,36,0.38)] hover:-translate-y-0.5 active:scale-[0.99] transition-all duration-300">
+                                    <div class="flex items-center justify-between gap-2">
+                                        <div class="inline-flex items-center gap-2">
+                                            <span class="w-6 h-6 shrink-0 rounded-lg bg-amber-500/25 border border-amber-400/50 flex items-center justify-center font-mono text-xs font-bold text-amber-300 group-hover:scale-105 transition-transform">0${idx + 1}</span>
+                                            <span class="rounded-full bg-amber-500/20 border border-amber-400/45 px-3 py-0.5 text-xs sm:text-sm font-bold tracking-wide text-amber-200">${entry.period}</span>
+                                        </div>
+                                        <span class="w-2 h-2 shrink-0 rounded-full ${isSubNote ? 'bg-emerald-400 shadow-[0_0_8px_#34d399]' : 'bg-amber-400 shadow-[0_0_8px_#fbbf24]'} group-hover:scale-125 transition-transform"></span>
+                                    </div>
+                                    ${bodyHtml}
+                                </div>
+                            `;
+                        };
+
+                        contentEl.className = 'mt-3 pt-1 flex-1 min-h-0 overflow-y-auto pr-1 space-y-3';
+                        contentEl.innerHTML = items.map((entry, idx) => buildScheduleCard(entry, idx)).join('');
+                        return;
+                    }
+
+                    const hasStructuredTests = items.some((entry) => entry && typeof entry === 'object' && typeof entry.subject === 'string' && typeof entry.title === 'string');
+
+                    if (hasStructuredTests) {
+                        badgeEl.classList.remove('hidden');
+                        badgeEl.textContent = `${items.length} ${translations[currentLang].itemsUnit}`;
+
+                        const formatDetailLine = (lineStr) => {
+                            const colonIdx = lineStr.indexOf('：') !== -1 ? lineStr.indexOf('：') : lineStr.indexOf(': ');
+                            if (colonIdx > 0 && colonIdx <= 12) {
+                                const tag = lineStr.slice(0, colonIdx).trim();
+                                const rest = lineStr.slice(colonIdx + 1).trim();
+                                return `<div class="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                                            <span class="inline-flex items-center rounded-lg bg-amber-500/20 border border-amber-400/45 px-2 py-0.5 text-[11px] sm:text-xs font-semibold tracking-wide text-amber-200">${tag}</span>
+                                            <span class="text-xs sm:text-sm font-medium text-amber-50/95 leading-snug">${rest}</span>
+                                        </div>`;
+                            }
+                            return `<span class="text-xs sm:text-sm font-medium text-amber-50/95 leading-snug">${lineStr}</span>`;
+                        };
+
+                        contentEl.className = 'mt-3 pt-1 flex-1 min-h-0 overflow-y-auto pr-1 space-y-3';
+                        contentEl.innerHTML = items.map((entry, idx) => {
+                            const hasSections = Array.isArray(entry.sections) && entry.sections.length > 0;
+                            const hasDetails = Array.isArray(entry.details) && entry.details.length > 0;
+
+                            let scopeHtml = '';
+                            if (hasSections) {
+                                scopeHtml = `
+                                    <div class="rounded-2xl bg-[#120703]/85 border border-amber-500/25 p-3 sm:p-3.5 space-y-2.5 mt-2">
+                                        <div class="flex items-center justify-between gap-2 pb-1.5 border-b border-amber-500/15">
+                                            <span class="font-mono text-xs font-semibold tracking-wider text-amber-300/90">${currentLang === 'zh' ? '測驗範圍' : 'SYLLABUS SCOPE'}</span>
+                                            <span class="rounded-full bg-amber-500/12 border border-amber-500/30 px-2 py-0.5 font-mono text-[11px] text-amber-300/90">${entry.sections.length} ${currentLang === 'zh' ? '部分' : 'Sections'}</span>
+                                        </div>
+                                        <div class="space-y-2.5">
+                                            ${entry.sections.map((sec, sIdx) => `
+                                                <div class="rounded-xl bg-white/[0.03] border border-amber-500/20 p-2.5 sm:p-3 space-y-1.5">
+                                                    <div class="inline-flex items-center gap-1.5 rounded-lg bg-amber-500/20 border border-amber-400/45 px-2.5 py-0.5 text-xs font-bold tracking-wide text-amber-200">
+                                                        <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+                                                        <span>${sec.heading}</span>
+                                                    </div>
+                                                    <ul class="space-y-1.5 pl-0.5">
+                                                        ${sec.items.map((subItem, iIdx) => `
+                                                            <li style="animation-delay: ${(idx * 4 + sIdx * 2 + iIdx) * 30}ms" class="animate-card-pop flex items-start gap-2 rounded-lg bg-gradient-to-r from-white/[0.04] to-transparent border border-amber-500/15 px-2.5 py-1.5">
+                                                                <span class="mt-0.5 w-4 h-4 shrink-0 rounded-md bg-amber-500/20 border border-amber-400/40 flex items-center justify-center font-mono text-[10px] font-bold text-amber-300">${iIdx + 1}</span>
+                                                                <span class="text-xs sm:text-sm font-medium text-amber-50/95 leading-snug">${subItem}</span>
+                                                            </li>
+                                                        `).join('')}
+                                                    </ul>
+                                                </div>
+                                            `).join('')}
+                                        </div>
+                                    </div>
+                                `;
+                            } else if (hasDetails) {
+                                scopeHtml = `
+                                    <div class="rounded-2xl bg-[#120703]/85 border border-amber-500/25 p-3 sm:p-3.5 space-y-2 mt-2">
+                                        <div class="flex items-center justify-between gap-2 pb-1.5 border-b border-amber-500/15">
+                                            <span class="font-mono text-xs font-semibold tracking-wider text-amber-300/90">${currentLang === 'zh' ? '測驗範圍' : 'SYLLABUS SCOPE'}</span>
+                                            <span class="rounded-full bg-amber-500/12 border border-amber-500/30 px-2 py-0.5 font-mono text-[11px] text-amber-300/90">${entry.details.length} ${translations[currentLang].itemsUnit}</span>
+                                        </div>
+                                        <ul class="space-y-1.5">
+                                            ${entry.details.map((sub, sIdx) => `
+                                                <li style="animation-delay: ${(idx * 4 + sIdx) * 30}ms" class="animate-card-pop group/sub flex items-start gap-2.5 rounded-xl bg-gradient-to-r from-white/[0.04] to-transparent hover:from-amber-500/14 hover:to-orange-500/8 border border-amber-500/15 hover:border-amber-400/45 px-3 py-2 transition-all duration-200">
+                                                    <span class="mt-0.5 w-5 h-5 shrink-0 rounded-lg bg-amber-500/20 border border-amber-400/45 flex items-center justify-center font-mono text-[11px] font-bold text-amber-300 group-hover/sub:scale-105 transition-transform">${sIdx + 1}</span>
+                                                    <div class="flex-1 min-w-0">${formatDetailLine(sub)}</div>
+                                                </li>
+                                            `).join('')}
+                                        </ul>
+                                    </div>
+                                `;
+                            }
+
+                            return `
+                                <div style="animation-delay: ${idx * 45}ms" class="animate-card-pop group relative overflow-hidden rounded-2xl bg-gradient-to-br from-amber-500/20 via-[#261107]/90 to-orange-500/12 hover:from-amber-500/32 hover:via-amber-500/18 hover:to-orange-500/25 border border-amber-400/50 hover:border-amber-300 p-3.5 sm:p-4 flex flex-col justify-center gap-1.5 shadow-[inset_0_1px_0_rgba(254,243,199,0.22),0_4px_18px_rgba(245,158,11,0.15)] hover:shadow-[inset_0_1px_0_rgba(254,243,199,0.4),0_0_26px_rgba(251,191,36,0.38)] hover:-translate-y-0.5 active:scale-[0.99] transition-all duration-300">
+                                    <div class="flex items-center justify-between gap-2">
+                                        <div class="flex flex-wrap items-center gap-2 min-w-0">
+                                            <span class="w-6 h-6 shrink-0 rounded-lg bg-amber-500/25 border border-amber-400/50 flex items-center justify-center font-mono text-xs font-bold text-amber-300 group-hover:scale-105 transition-transform">0${idx + 1}</span>
+                                            <span class="inline-flex items-center rounded-full bg-amber-500/22 border border-amber-400/50 px-2.5 py-0.5 text-xs font-bold tracking-wide text-amber-200">${entry.subject}</span>
+                                        </div>
+                                        <span class="w-2 h-2 shrink-0 rounded-full bg-amber-400 shadow-[0_0_8px_#fbbf24] group-hover:scale-125 transition-transform"></span>
+                                    </div>
+                                    <div class="pt-0.5 pl-0.5">
+                                        <span class="block text-base sm:text-lg font-bold text-amber-50 group-hover:text-amber-200 transition-colors leading-snug">${entry.title}</span>
+                                    </div>
+                                    ${scopeHtml}
+                                </div>
+                            `;
+                        }).join('');
+                        return;
+                    }
+
+                    const hasStructuredActivities = items.some((entry) => entry && typeof entry === 'object' && typeof entry.title === 'string' && !entry.subject);
+
+                    if (hasStructuredActivities) {
+                        badgeEl.classList.remove('hidden');
+                        badgeEl.textContent = `${items.length} ${translations[currentLang].itemsUnit}`;
+
+                        const buildActivityCard = (entry, idx) => {
+                            const hasDetails = Array.isArray(entry.details) && entry.details.length > 0;
+                            const isHoliday = Boolean(entry.isHoliday);
+                            const locationText = entry.location || '';
+
+                            const timeBadgeHtml = entry.time
+                                ? `<span class="inline-flex items-center rounded-full ${isHoliday ? 'bg-emerald-500/20 border-emerald-400/45 text-emerald-200' : 'bg-amber-500/20 border-amber-400/45 text-amber-200'} border px-2.5 py-0.5 font-mono text-xs font-semibold tracking-wide shrink-0">${entry.time}</span>`
+                                : '';
+
+                            const holidayBadgeHtml = isHoliday
+                                ? `<span class="inline-flex items-center gap-1 rounded-full bg-emerald-500/20 border border-emerald-400/45 px-2.5 py-0.5 text-[11px] font-bold text-emerald-200 shrink-0">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_#34d399]"></span>
+                                        <span>${currentLang === 'zh' ? '假期' : 'Holiday'}</span>
+                                   </span>`
+                                : '';
+
+                            const locationBadgeHtml = locationText
+                                ? `<div class="mt-1 inline-flex items-center gap-1.5 rounded-xl bg-amber-500/15 border border-amber-400/35 px-3 py-1 text-xs sm:text-sm font-semibold text-amber-200">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-amber-300 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        </svg>
+                                        <span>${locationText}</span>
+                                   </div>`
+                                : '';
+
+                            const rangeNoteHtml = entry.range
+                                ? `<div class="mt-1.5 inline-flex items-center gap-1.5 rounded-lg bg-white/[0.05] border border-emerald-400/25 px-2.5 py-0.5 font-mono text-[11px] text-emerald-200/85">
+                                        <span>${currentLang === 'zh' ? '假期時段' : 'Holiday Period'}:</span>
+                                        <span>${entry.range}</span>
+                                   </div>`
+                                : '';
+
+                            const subItemsHtml = hasDetails
+                                ? `
+                                    <div class="rounded-2xl bg-[#120703]/85 border border-amber-500/25 p-3 sm:p-3.5 space-y-2 mt-2">
+                                        <div class="flex items-center justify-between gap-2 pb-1.5 border-b border-amber-500/15">
+                                            <span class="font-mono text-xs font-semibold tracking-wider text-amber-300/90">${currentLang === 'zh' ? '需做的事' : 'TO-DO ITEMS'}</span>
+                                            <span class="rounded-full bg-amber-500/12 border border-amber-500/30 px-2 py-0.5 font-mono text-[11px] text-amber-300/90">${entry.details.length} ${translations[currentLang].itemsUnit}</span>
+                                        </div>
+                                        <ul class="space-y-1.5">
+                                            ${entry.details.map((sub, sIdx) => `
+                                                <li style="animation-delay: ${(idx * 4 + sIdx) * 35}ms" class="animate-card-pop group/sub flex items-center gap-2.5 rounded-xl bg-gradient-to-r from-white/[0.04] to-transparent hover:from-amber-500/14 hover:to-orange-500/8 border border-amber-500/15 hover:border-amber-400/45 px-3 py-2 transition-all duration-200">
+                                                    <span class="w-5 h-5 shrink-0 rounded-lg bg-amber-500/20 border border-amber-400/45 flex items-center justify-center font-mono text-[11px] font-bold text-amber-300 group-hover/sub:scale-105 transition-transform">${sIdx + 1}</span>
+                                                    <span class="text-xs sm:text-sm font-medium text-amber-50/95 leading-snug">${sub}</span>
+                                                </li>
+                                            `).join('')}
+                                        </ul>
+                                    </div>
+                                `
+                                : '';
+
+                            const cardToneClass = isHoliday
+                                ? 'from-emerald-500/18 via-[#1e170a]/90 to-amber-500/12 hover:from-emerald-500/28 hover:via-emerald-500/16 hover:to-amber-500/20 border-emerald-400/55 hover:border-emerald-300 shadow-[inset_0_1px_0_rgba(209,250,229,0.2),0_4px_18px_rgba(16,185,129,0.16)] hover:shadow-[inset_0_1px_0_rgba(209,250,229,0.35),0_0_26px_rgba(52,211,153,0.32)]'
+                                : 'from-amber-500/20 via-[#261107]/90 to-orange-500/12 hover:from-amber-500/32 hover:via-amber-500/18 hover:to-orange-500/25 border-amber-400/50 hover:border-amber-300 shadow-[inset_0_1px_0_rgba(254,243,199,0.22),0_4px_18px_rgba(245,158,11,0.15)] hover:shadow-[inset_0_1px_0_rgba(254,243,199,0.4),0_0_26px_rgba(251,191,36,0.38)]';
+
+                            return `
+                                <div style="animation-delay: ${idx * 45}ms" class="animate-card-pop group relative overflow-hidden rounded-2xl bg-gradient-to-br ${cardToneClass} border p-3.5 sm:p-4 flex flex-col justify-center gap-1.5 hover:-translate-y-0.5 active:scale-[0.99] transition-all duration-300">
+                                    <div class="flex items-center justify-between gap-2">
+                                        <div class="flex flex-wrap items-center gap-2 min-w-0">
+                                            <span class="w-6 h-6 shrink-0 rounded-lg ${isHoliday ? 'bg-emerald-500/25 border-emerald-400/50 text-emerald-300' : 'bg-amber-500/25 border-amber-400/50 text-amber-300'} border flex items-center justify-center font-mono text-xs font-bold group-hover:scale-105 transition-transform">0${idx + 1}</span>
+                                            ${timeBadgeHtml}
+                                            ${holidayBadgeHtml}
+                                        </div>
+                                        <span class="w-2 h-2 shrink-0 rounded-full ${isHoliday ? 'bg-emerald-400 shadow-[0_0_8px_#34d399]' : 'bg-amber-400 shadow-[0_0_8px_#fbbf24]'} group-hover:scale-125 transition-transform"></span>
+                                    </div>
+                                    <div class="pt-0.5 pl-0.5">
+                                        <span class="block text-base sm:text-lg font-bold text-amber-50 group-hover:text-amber-200 transition-colors leading-snug">${entry.title}</span>
+                                        ${locationBadgeHtml}
+                                    </div>
+                                    ${rangeNoteHtml ? `<div class="pl-0.5">${rangeNoteHtml}</div>` : ''}
+                                    ${subItemsHtml}
+                                </div>
+                            `;
+                        };
+
+                        contentEl.className = 'mt-3 pt-1 flex-1 min-h-0 overflow-y-auto pr-1 space-y-3';
+                        contentEl.innerHTML = items.map((entry, idx) => buildActivityCard(entry, idx)).join('');
+                        return;
+                    }
+
                     badgeEl.classList.remove('hidden');
                     badgeEl.textContent = `${items.length} ${translations[currentLang].itemsUnit}`;
-                    contentEl.className = 'mt-3 flex-1 min-h-0 overflow-y-auto pr-1 space-y-2.5';
-                    contentEl.innerHTML = items.map((item, idx) => `
-                        <div class="rounded-2xl bg-[#120703]/85 border border-amber-500/30 p-3.5 sm:p-4 flex items-center gap-3">
-                            <span class="font-mono text-xs font-bold text-amber-400">0${idx + 1}</span>
-                            <span class="text-sm sm:text-base font-medium text-amber-50">${item}</span>
-                        </div>
-                    `).join('');
+
+                    const itemCardClass = 'animate-card-pop group relative overflow-hidden rounded-2xl bg-gradient-to-br from-amber-500/20 via-[#261107]/90 to-orange-500/12 hover:from-amber-500/32 hover:via-amber-500/18 hover:to-orange-500/25 border border-amber-400/50 hover:border-amber-300 px-4 py-2.5 flex items-center justify-between gap-3 shadow-[inset_0_1px_0_rgba(254,243,199,0.22),0_4px_18px_rgba(245,158,11,0.15)] hover:shadow-[inset_0_1px_0_rgba(254,243,199,0.4),0_0_26px_rgba(251,191,36,0.38)] hover:-translate-y-0.5 active:scale-[0.99] transition-all duration-300';
+
+                    // 5-row slot layout when <= 5 items so activity boxes keep clean proportions and interactive hover glow
+                    if (items.length <= 5) {
+                        contentEl.className = 'mt-3 pt-1 flex-1 min-h-0 overflow-y-auto pr-1 grid grid-cols-1 grid-rows-5 gap-2.5';
+                        let html = '';
+                        for (let i = 0; i < 5; i++) {
+                            if (i < items.length) {
+                                html += `
+                                    <div style="animation-delay: ${i * 45}ms" class="${itemCardClass}">
+                                        <div class="flex items-center gap-3 min-w-0">
+                                            <span class="w-7 h-7 shrink-0 rounded-xl bg-amber-500/20 border border-amber-400/45 flex items-center justify-center font-mono text-xs font-bold text-amber-300 shadow-[0_0_10px_rgba(245,158,11,0.2)] group-hover:scale-110 transition-transform">0${i + 1}</span>
+                                            <span class="text-sm sm:text-base font-semibold text-amber-50 group-hover:text-amber-200 transition-colors">${items[i]}</span>
+                                        </div>
+                                        <span class="w-2 h-2 shrink-0 rounded-full bg-amber-400 shadow-[0_0_8px_#fbbf24] group-hover:scale-125 group-hover:bg-amber-300 transition-all"></span>
+                                    </div>
+                                `;
+                            } else {
+                                html += `<div class="rounded-2xl border border-transparent"></div>`;
+                            }
+                        }
+                        contentEl.innerHTML = html;
+                    } else {
+                        contentEl.className = 'mt-3 pt-1 flex-1 min-h-0 overflow-y-auto pr-1 space-y-2.5';
+                        contentEl.innerHTML = items.map((item, idx) => `
+                            <div style="animation-delay: ${Math.min(idx, 10) * 40}ms" class="${itemCardClass}">
+                                <div class="flex items-center gap-3 min-w-0">
+                                    <span class="w-7 h-7 shrink-0 rounded-xl bg-amber-500/20 border border-amber-400/45 flex items-center justify-center font-mono text-xs font-bold text-amber-300 shadow-[0_0_10px_rgba(245,158,11,0.2)] group-hover:scale-110 transition-transform">0${idx + 1}</span>
+                                    <span class="text-sm sm:text-base font-semibold text-amber-50 group-hover:text-amber-200 transition-colors">${item}</span>
+                                </div>
+                                <span class="w-2 h-2 shrink-0 rounded-full bg-amber-400 shadow-[0_0_8px_#fbbf24] group-hover:scale-125 group-hover:bg-amber-300 transition-all"></span>
+                            </div>
+                        `).join('');
+                    }
                 }
 
                 function renderDutyRoster() {
@@ -1293,19 +1891,42 @@
                     `;
 
                     const roles = [
-                        { label: t.dutySweep, person: '鍾鎧汶 (39)', code: '01' },
-                        { label: t.dutyConsole, person: '崔韓妃 (14)', code: '02' },
-                        { label: t.dutyBlackboard, person: '張欣蔓 (15)', code: '03' },
-                        { label: t.dutyTrash, person: '張綺晴 (16)', code: '04' }
+                        {
+                            label: t.dutySweep,
+                            person: '鍾鎧汶 (39)',
+                            note: '',
+                            code: '01'
+                        },
+                        {
+                            label: t.dutyConsole,
+                            person: '梁旭言 (17)',
+                            note: '',
+                            code: '02'
+                        },
+                        {
+                            label: t.dutyBlackboard,
+                            person: '陳昊廷 (21)',
+                            note: '原由莫梓明 (18)做, 但因公假, 先由陳昊廷 (21)做',
+                            code: '03'
+                        },
+                        {
+                            label: t.dutyTrash,
+                            person: '陳澤楷 (23)',
+                            note: '原由許思然 (19)做, 但因公假, 同時陳樂妍 (22)請假, 先由陳澤楷 (23)做',
+                            code: '04'
+                        }
                     ];
 
                     gridEl.innerHTML = roles.map((r) => `
-                        <div class="rounded-2xl bg-[#120703]/80 border border-amber-500/30 p-4 sm:p-6 flex flex-col justify-between">
+                        <div class="rounded-2xl bg-[#120703]/80 border border-amber-500/30 p-4 sm:p-5 flex flex-col justify-between gap-2">
                             <div class="flex items-center justify-between">
                                 <span class="text-sm sm:text-base font-semibold text-amber-300/90">${r.label}</span>
                                 <span class="font-mono text-xs text-amber-400/65">${r.code}</span>
                             </div>
-                            <div class="text-xl sm:text-2xl lg:text-3xl font-bold text-amber-50 mt-3">${r.person}</div>
+                            <div>
+                                <div class="text-xl sm:text-2xl lg:text-3xl font-bold text-amber-50">${r.person}</div>
+                                ${r.note ? `<p class="text-xs sm:text-sm text-amber-200/80 mt-1.5 leading-relaxed">${r.note}</p>` : ''}
+                            </div>
                         </div>
                     `).join('');
 
