@@ -94,7 +94,7 @@
                 <span id="macauClockText" class="font-mono text-xs sm:text-sm text-amber-300/90 tracking-wider">--:--:--</span>
             </div>
 
-            <!-- Right: Language Toggle & Dashboard Logout -->
+            <!-- Right: Language Toggle, Update Log & Dashboard Logout -->
             <div class="flex items-center gap-2.5">
                 <div id="dashboardUserControls" class="hidden items-center gap-2">
                     <span class="hidden sm:inline-flex items-center gap-1.5 rounded-full bg-amber-500/10 border border-amber-500/30 px-3 py-1.5 font-mono text-xs text-amber-300">
@@ -323,9 +323,6 @@
                     <h3 data-i18n="cat6" class="text-lg sm:text-xl font-bold text-amber-50 group-hover:text-amber-200 transition-colors">值日</h3>
                 </button>
             </div>
-
-            <!-- Toast for Unbuilt Sections -->
-            <div id="dashboardToast" class="hidden mt-6 mx-auto rounded-full bg-amber-500/20 border border-amber-400/50 px-5 py-2 text-xs sm:text-sm text-amber-200 backdrop-blur-md shadow-[0_0_20px_rgba(245,158,11,0.2)]"></div>
         </section>
 
         <!-- ========================================== -->
@@ -834,1533 +831,1542 @@
         </div>
     </div>
 
+    <!-- ========================================== -->
+    <!-- APPLICATION LOGIC & FIREBASE AUTH          -->
+    <!-- ========================================== -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword, signOut, setPersistence, inMemoryPersistence } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import {
+            getAuth,
+            signInAnonymously,
+            signInWithCustomToken,
+            signOut,
+            setPersistence,
+            inMemoryPersistence
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import {
+            getFirestore,
+            collection,
+            getDocs,
+            doc,
+            getDoc
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        function initPortal() {
+        // Firebase Web App Configuration (secondary-remarks)
+        const FALLBACK_FIREBASE_CONFIG = {
+            apiKey: "AIzaSyCLu7K902D2zpyejrqIp3OxnBuSgI4Mx_Q",
+            authDomain: "secondary-remarks.firebaseapp.com",
+            databaseURL: "https://secondary-remarks-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "secondary-remarks",
+            storageBucket: "secondary-remarks.firebasestorage.app",
+            messagingSenderId: "348392364301",
+            appId: "1:348392364301:web:c83671a286876a0355f844",
+            measurementId: "G-MFZK1X8J75"
+        };
+
+        // ==========================================
+        // AMBIENT SOLAR SCI-FI THREE.JS BACKGROUND
+        // ==========================================
+        function initSolarCanvas() {
             try {
-                // ==========================================
-                // 1. Bilingual Translation Dictionary
-                // ==========================================
-                const translations = {
-                    zh: {
-                        systemAccess: '系統存取',
-                        loginTitle: 'S2F 系統登入',
-                        usernameLabel: '用戶名稱',
-                        usernamePlaceholder: '請輸入用戶名稱',
-                        passwordLabel: '密碼',
-                        passwordPlaceholder: '請輸入密碼',
-                        loginBtn: '登入',
-                        loggingInBtn: '驗證中...',
-                        loginError: '用戶名稱或密碼錯誤，請再試一次。',
-                        firebaseConfigError: '尚未連接 Firebase 伺服器設定，請先在程式碼中填入 firebaseConfig。',
-                        logoutBtn: '登出',
-                        greetingTopic: '您好, 您需要查詢什麼?',
-                        cat1: '公假名單',
-                        cat2: '功課',
-                        cat3: '調課/代課情況',
-                        cat4: '測驗',
-                        cat5: '學校活動',
-                        cat6: '值日',
-                        statusInClass: '上課中',
-                        statusRecess: '小息',
-                        statusLunch: '午飯',
-                        statusAfterSchool: '放學時段',
-                        backBtn: '返回主選單',
-                        month11Label: '11月',
-                        month12Label: '12月',
-                        month01Label: '1月',
-                        legendPassed: '已過日期',
-                        legendToday: '今日',
-                        legendHasLeave: '有公假',
-                        legendHasHw: '有功課',
-                        legendHasSc: '有調/代課',
-                        legendHasTest: '有測驗',
-                        legendHasAct: '有活動',
-                        selectedDateLabel: '查詢日期',
-                        passedDateMsg: '此日期已過，無需查詢。',
-                        noLeaveMsg: '本日暫無公假名單記錄。',
-                        noHwMsg: '本日暫無功課記錄。',
-                        noScMsg: '本日暫無調課/代課安排。',
-                        noTestMsg: '本日暫無測驗安排。',
-                        noActMsg: '本日暫無學校活動安排。',
-                        peopleUnit: '人',
-                        itemsUnit: '項',
-                        lastUpdatedLeave: '最後更新時間: 2026-11-27 22:10',
-                        lastUpdatedAct: '最後更新時間: 2026-11-27 22:10',
-                        dutyDateTitle: '值日日期',
-                        dutyDateDisplay: '2026年11月28日 (六)',
-                        dutySweep: '掃地',
-                        dutyConsole: '總控台',
-                        dutyBlackboard: '擦黑板',
-                        dutyTrash: '倒垃圾',
-                        dutySpecialTitle: '特別提醒',
-                        dutySpecialDetail: '鍾鎧汶 (39) -- 3天',
-                        updateLogBtn: '更新日誌',
-                        updateLogTitle: '系統更新日誌',
-                        update00Heading: '更新 0.0：',
-                        update00Time: '時間：2026-11-27 -- 22:20',
-                        update00Item1: '已為本網站新增伺服器，但暫時尚未對外開放。',
-                        update00Item2: '已更改用戶名稱及密碼，現在無法從原始前端程式碼中找到用戶名稱及密碼。'
-                    },
-                    en: {
-                        systemAccess: 'SYSTEM ACCESS',
-                        loginTitle: 'S2F System Login',
-                        usernameLabel: 'Username',
-                        usernamePlaceholder: 'Enter username',
-                        passwordLabel: 'Password',
-                        passwordPlaceholder: 'Enter password',
-                        loginBtn: 'Sign In',
-                        loggingInBtn: 'Verifying...',
-                        loginError: 'Invalid username or password. Please try again.',
-                        firebaseConfigError: 'Firebase config is not connected yet. Please add your firebaseConfig.',
-                        logoutBtn: 'Logout',
-                        greetingTopic: 'Hello, what would you like to check?',
-                        cat1: 'Official Leave List',
-                        cat2: 'Homework',
-                        cat3: 'Schedule / Substitute Changes',
-                        cat4: 'Tests & Quizzes',
-                        cat5: 'School Activities',
-                        cat6: 'Duty Roster',
-                        statusInClass: 'In Class',
-                        statusRecess: 'Recess',
-                        statusLunch: 'Lunch Break',
-                        statusAfterSchool: 'After School',
-                        backBtn: 'Back to Menu',
-                        month11Label: 'Nov',
-                        month12Label: 'Dec',
-                        month01Label: 'Jan',
-                        legendPassed: 'Passed',
-                        legendToday: 'Today',
-                        legendHasLeave: 'Leave Listed',
-                        legendHasHw: 'Homework',
-                        legendHasSc: 'Change Listed',
-                        legendHasTest: 'Test Listed',
-                        legendHasAct: 'Activity Listed',
-                        selectedDateLabel: 'SELECTED DATE',
-                        passedDateMsg: 'This date has already passed.',
-                        noLeaveMsg: 'No official leave recorded for this date.',
-                        noHwMsg: 'No homework recorded for this date.',
-                        noScMsg: 'No schedule or substitute changes for this date.',
-                        noTestMsg: 'No tests or quizzes scheduled for this date.',
-                        noActMsg: 'No school activities scheduled for this date.',
-                        peopleUnit: 'Students',
-                        itemsUnit: 'Items',
-                        lastUpdatedLeave: 'Last Updated: 2026-11-27 22:10',
-                        lastUpdatedAct: 'Last Updated: 2026-11-27 22:10',
-                        dutyDateTitle: 'DUTY DATE',
-                        dutyDateDisplay: '2026年11月28日 (六)',
-                        dutySweep: 'Sweeping (掃地)',
-                        dutyConsole: 'Main Console (總控台)',
-                        dutyBlackboard: 'Blackboard (擦黑板)',
-                        dutyTrash: 'Trash Duty (倒垃圾)',
-                        dutySpecialTitle: 'Special Reminder (特別提醒)',
-                        dutySpecialDetail: '鍾鎧汶 (39) -- 3天',
-                        updateLogBtn: 'Update Log',
-                        updateLogTitle: 'System Update Log',
-                        update00Heading: 'Update 0.0:',
-                        update00Time: 'Time: 2026-11-27 -- 22:20',
-                        update00Item1: 'Added server in this website. But not opening to other where else yet.',
-                        update00Item2: "Changed username and password. Now username and password isn't possible to be found in original front code."
-                    }
-                };
+                const canvas = document.getElementById("solarCanvas");
+                if (!canvas || typeof THREE === "undefined") return;
 
-                // ==========================================
-                // 2. Firebase Authentication Setup (Secondary-remarks)
-                //    Zero credentials stored in client source code
-                // ==========================================
-                const defaultFirebaseConfig = {
-                    apiKey: "AIzaSyCLu7K902D2zpyejrqIp3OxnBuSgI4Mx_Q",
-                    authDomain: "secondary-remarks.firebaseapp.com",
-                    projectId: "secondary-remarks",
-                    storageBucket: "secondary-remarks.firebasestorage.app",
-                    messagingSenderId: "348392364301",
-                    appId: "1:348392364301:web:1787d142c7426f55f944"
-                };
+                const scene = new THREE.Scene();
+                const camera = new THREE.PerspectiveCamera(
+                    60,
+                    window.innerWidth / window.innerHeight,
+                    0.1,
+                    1000
+                );
+                camera.position.z = 26;
 
-                const firebaseConfig = (typeof __firebase_config !== 'undefined' && __firebase_config)
-                    ? JSON.parse(__firebase_config)
-                    : defaultFirebaseConfig;
+                const renderer = new THREE.WebGLRenderer({
+                    canvas,
+                    alpha: true,
+                    antialias: true
+                });
+                renderer.setSize(window.innerWidth, window.innerHeight);
+                renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
 
-                let firebaseAuth = null;
-                if (firebaseConfig && firebaseConfig.apiKey) {
-                    const firebaseApp = initializeApp(firebaseConfig);
-                    firebaseAuth = getAuth(firebaseApp);
-                    // Require fresh login on every page load by clearing cached sessions & using in-memory persistence
-                    setPersistence(firebaseAuth, inMemoryPersistence)
-                        .then(() => signOut(firebaseAuth))
-                        .catch(() => {});
+                // Solar Dust Particle Field
+                const particleCount = 420;
+                const positions = new Float32Array(particleCount * 3);
+                for (let i = 0; i < particleCount * 3; i += 3) {
+                    positions[i] = (Math.random() - 0.5) * 65;
+                    positions[i + 1] = (Math.random() - 0.5) * 45;
+                    positions[i + 2] = (Math.random() - 0.5) * 35;
                 }
 
-                // ==========================================
-                // 3. Portal Datasets (Boxes 01 - 05)
-                // ==========================================
-                const officialLeaveData = {
-                    '2026-11-27': [
-                        '王梓悠 (1)',
-                        '吳奕恩 (3)',
-                        '林建璋 (11)',
-                        '陳澤楷 (23)',
-                        '黃胤澤 (25)',
-                        '葉柏豪 (30)',
-                        '劉承之 (33)',
-                        '鄧正謙 (36)',
-                        '關芷晴 (41)',
-                        '關藹琳 (42)'
-                    ],
-                    '2026-11-28': [
-                        '王梓悠 (1)',
-                        '吳奕恩 (3)',
-                        '周琬兒 (9)',
-                        '林建璋 (11)',
-                        '張欣蔓 (15)',
-                        '莫梓明 (18)',
-                        '許思然 (19)',
-                        '陳心喬 (20)',
-                        '陳澤楷 (23)',
-                        '黃胤澤 (25)',
-                        '黃詠彤 (28)',
-                        '葉柏豪 (30)',
-                        '趙文濼 (31)',
-                        '劉承之 (33)',
-                        '劉芷琪 (34)',
-                        '蔡智晴 (35)',
-                        '鄧正謙 (36)',
-                        '關芷晴 (41)',
-                        '關藹琳 (42)'
-                    ],
-                    '2026-11-29': [
-                        '王梓悠 (1)',
-                        '吳奕恩 (3)',
-                        '林建璋 (11)',
-                        '陳澤楷 (23)',
-                        '黃胤澤 (25)',
-                        '葉柏豪 (30)',
-                        '劉承之 (33)',
-                        '鄧正謙 (36)',
-                        '關芷晴 (41)',
-                        '關藹琳 (42)'
-                    ],
-                    '2026-11-30': [
-                        '許思然 (19)'
-                    ],
-                    '2026-12-01': ['許思然 (19)', '關芷晴 (41)'],
-                    '2026-12-02': ['許思然 (19)', '關芷晴 (41)'],
-                    '2026-12-03': ['許思然 (19)', '關芷晴 (41)'],
-                    '2026-12-04': ['許思然 (19)', '關芷晴 (41)'],
-                    '2026-12-05': ['關芷晴 (41)']
-                };
+                const particleGeo = new THREE.BufferGeometry();
+                particleGeo.setAttribute("position", new THREE.BufferAttribute(positions, 3));
 
-                const homeworkData = {
-                    '2026-12-02': [
-                        {
-                            subject: '設科',
-                            groups: [
-                                {
-                                    name: '吳sir半班',
-                                    tasks: [
-                                        'Week 12 -- 打字',
-                                        'Logbook -- 第二段第二課 "力的種類、表示與作用效果"',
-                                        'K230 -- 第五課 "看見顏色"',
-                                        '科學學習系統預習 -- 第三課 "質量、重力、合力與二力平衡"'
-                                    ]
-                                },
-                                {
-                                    name: '李sir半班',
-                                    tasks: [
-                                        'Onshape -- 書簽',
-                                        '科學學習系統預習 -- 第三課 "質量、重力、合力與二力平衡"'
-                                    ]
-                                }
-                            ]
-                        }
-                    ]
-                };
-
-                const scheduleChangeData = {
-                    '2026-11-30': [
-                        {
-                            period: '第四堂',
-                            from: '品德公民',
-                            to: '代數'
-                        },
-                        {
-                            period: '第四、五堂',
-                            note: '由吳倩瀅老師代兩堂代數'
-                        }
-                    ],
-                    '2026-12-03': [
-                        {
-                            period: '第四堂',
-                            from: '代數',
-                            to: '中文'
-                        }
-                    ],
-                    '2026-12-04': [
-                        {
-                            period: '第五堂',
-                            from: '代數',
-                            to: '地理'
-                        }
-                    ],
-                    '2026-12-05': [
-                        {
-                            period: '第四堂',
-                            from: '中文',
-                            to: '代數'
-                        },
-                        {
-                            period: '第五堂',
-                            from: '地理',
-                            to: '代數'
-                        }
-                    ]
-                };
-
-                const testData = {
-                    '2026-11-28': [
-                        {
-                            subject: '英文',
-                            title: 'English Graded Reading',
-                            details: []
-                        }
-                    ],
-                    '2026-12-04': [
-                        {
-                            subject: '英文',
-                            title: 'English Dictation',
-                            details: [
-                                'OEF Unit 4 Text 1 Para. 2-5',
-                                'One Extra Passage (See the attachment on eClass)'
-                            ]
-                        }
-                    ],
-                    '2026-12-05': [
-                        {
-                            subject: '英文',
-                            title: 'English Graded Reading',
-                            details: []
-                        }
-                    ],
-                    '2026-12-07': [
-                        {
-                            subject: '數學',
-                            title: '數學基力',
-                            details: [
-                                '代數: 9.1 分式的概念 至 9.3 分式的乘除法',
-                                '幾何: 1.6 線段垂直平分線 至 1.7 軸對稱'
-                            ]
-                        }
-                    ],
-                    '2026-12-08': [
-                        {
-                            subject: '中文',
-                            title: '中文大測',
-                            details: [
-                                '詳讀：《孔乙己》、《感遇》、《西塞山懷古》',
-                                '自讀：《從軍行》、《惡蚊》、《遊山西村》',
-                                '默寫：《感遇》、《西塞山懷古》、《遊山西村》、名句（1-8）',
-                                '成語：常見近義成語辨析(54-57)、重點成語(98-106)',
-                                '名句：1-8',
-                                '語基：是字句及存現句',
-                                '中國文學常識、澳門文化常識',
-                                '文言文閱讀理解',
-                                '材料分析'
-                            ]
-                        }
-                    ],
-                    '2026-12-11': [
-                        {
-                            subject: '英文',
-                            title: 'R+S Oral Presentation',
-                            details: [
-                                'A Christmas Carol (all chapters)'
-                            ]
-                        }
-                    ],
-                    '2026-12-18': [
-                        {
-                            subject: '英文',
-                            title: 'R+S Oral Presentation',
-                            details: [
-                                'A Christmas Carol (all chapters)'
-                            ]
-                        },
-                        {
-                            subject: '英文',
-                            title: 'English GE Test',
-                            sections: [
-                                {
-                                    heading: 'Reading Comprehension',
-                                    items: [
-                                        'Seen Forward 2A Unit 4 Text 1 (p. 100-101) + 2 (p. 104-105)',
-                                        'Unseen'
-                                    ]
-                                },
-                                {
-                                    heading: 'Usage',
-                                    items: [
-                                        '9 tenses + 4 types of Conditionals',
-                                        'Question Tags',
-                                        'Relative Clauses'
-                                    ]
-                                },
-                                {
-                                    heading: 'Vocabulary',
-                                    items: [
-                                        'word lists on Text 1 (p. 100-101) + Life Skill (p.108) + Vocabulary building skill (p. 109)'
-                                    ]
-                                }
-                            ]
-                        }
-                    ]
-                };
-
-                const activityData = {
-                    '2026-11-27': [
-                        {
-                            time: '10:30 ~ 12:15',
-                            title: '參觀美術館'
-                        }
-                    ],
-                    '2026-11-30': [
-                        {
-                            time: '第三堂',
-                            title: '遠足前會議'
-                        }
-                    ],
-                    '2026-12-02': [
-                        {
-                            time: '15:50 ~ 16:30',
-                            title: '聖誕攤位前會議',
-                            location: '位置: 圖書館H406',
-                            details: [
-                                '交園遊會攤位借用物品憑條',
-                                '確認攤位名稱',
-                                '抽簽攤位位置'
-                            ]
-                        }
-                    ],
-                    '2026-12-12': [
-                        {
-                            time: '上午',
-                            title: '遠足'
-                        },
-                        {
-                            time: '下午',
-                            title: 'BBQ'
-                        }
-                    ],
-                    '2026-12-15': [
-                        {
-                            title: '交聖誕壁報'
-                        }
-                    ],
-                    '2026-12-16': [
-                        {
-                            time: '全天',
-                            title: '去澳門大學上課'
-                        }
-                    ],
-                    '2026-12-19': [
-                        {
-                            time: '上午',
-                            title: '聖誕聯歡'
-                        },
-                        {
-                            time: '下午',
-                            title: '聖誕攤位'
-                        }
-                    ],
-                    '2026-12-20': [
-                        {
-                            time: '全天',
-                            title: '澳門回歸日 (放假)',
-                            isHoliday: true
-                        }
-                    ],
-                    '2026-12-21': [{ time: '全天', title: '聖誕假 (放假)', isHoliday: true, range: '2026-12-21 ~ 2026-12-31' }],
-                    '2026-12-22': [{ time: '全天', title: '聖誕假 (放假)', isHoliday: true, range: '2026-12-21 ~ 2026-12-31' }],
-                    '2026-12-23': [{ time: '全天', title: '聖誕假 (放假)', isHoliday: true, range: '2026-12-21 ~ 2026-12-31' }],
-                    '2026-12-24': [{ time: '全天', title: '聖誕假 (放假)', isHoliday: true, range: '2026-12-21 ~ 2026-12-31' }],
-                    '2026-12-25': [{ time: '全天', title: '聖誕假 (放假)', isHoliday: true, range: '2026-12-21 ~ 2026-12-31' }],
-                    '2026-12-26': [{ time: '全天', title: '聖誕假 (放假)', isHoliday: true, range: '2026-12-21 ~ 2026-12-31' }],
-                    '2026-12-27': [{ time: '全天', title: '聖誕假 (放假)', isHoliday: true, range: '2026-12-21 ~ 2026-12-31' }],
-                    '2026-12-28': [{ time: '全天', title: '聖誕假 (放假)', isHoliday: true, range: '2026-12-21 ~ 2026-12-31' }],
-                    '2026-12-29': [{ time: '全天', title: '聖誕假 (放假)', isHoliday: true, range: '2026-12-21 ~ 2026-12-31' }],
-                    '2026-12-30': [{ time: '全天', title: '聖誕假 (放假)', isHoliday: true, range: '2026-12-21 ~ 2026-12-31' }],
-                    '2026-12-31': [{ time: '全天', title: '聖誕假 (放假)', isHoliday: true, range: '2026-12-21 ~ 2026-12-31' }],
-                    '2027-01-01': [{ time: '全天', title: '元旦 (放假)', isHoliday: true, range: '2027-01-01 ~ 2027-01-03' }],
-                    '2027-01-02': [{ time: '全天', title: '元旦 (放假)', isHoliday: true, range: '2027-01-01 ~ 2027-01-03' }],
-                    '2027-01-03': [{ time: '全天', title: '元旦 (放假)', isHoliday: true, range: '2027-01-01 ~ 2027-01-03' }]
-                };
-
-                // ==========================================
-                // 4. Live Macau (GMT+8) Date & Time Helper
-                // ==========================================
-                function getMacauNow() {
-                    const now = new Date();
-                    const utcMs = now.getTime() + now.getTimezoneOffset() * 60000;
-                    return new Date(utcMs + 8 * 3600000);
-                }
-
-                function getMacauTodayStr() {
-                    const macau = getMacauNow();
-                    const y = macau.getFullYear();
-                    const m = String(macau.getMonth() + 1).padStart(2, '0');
-                    const d = String(macau.getDate()).padStart(2, '0');
-                    return `${y}-${m}-${d}`;
-                }
-
-                // ==========================================
-                // 5. Application State & DOM References
-                // ==========================================
-                let currentLang = 'zh';
-                let isLoggedIn = false;
-                let activeViewName = 'login';
-                let currentMacauTodayStr = getMacauTodayStr();
-
-                const availableMonths = [
-                    { year: 2026, month: 11, labelZh: '2026年 11月', labelEn: 'November 2026' },
-                    { year: 2026, month: 12, labelZh: '2026年 12月', labelEn: 'December 2026' }
-                ];
-
-                const actAvailableMonths = [
-                    { year: 2026, month: 11, labelZh: '2026年 11月', labelEn: 'November 2026' },
-                    { year: 2026, month: 12, labelZh: '2026年 12月', labelEn: 'December 2026' },
-                    { year: 2027, month: 1, labelZh: '2027年 1月', labelEn: 'January 2027' }
-                ];
-
-                let leaveMonthIdx = 0;
-                let selectedLeaveDate = currentMacauTodayStr;
-
-                let hwMonthIdx = 0;
-                let selectedHwDate = currentMacauTodayStr;
-
-                let scMonthIdx = 0;
-                let selectedScDate = currentMacauTodayStr;
-
-                let testMonthIdx = 0;
-                let selectedTestDate = currentMacauTodayStr;
-
-                let actMonthIdx = 0;
-                let selectedActDate = currentMacauTodayStr;
-
-                const views = {
-                    login: document.getElementById('loginView'),
-                    dashboard: document.getElementById('dashboardView'),
-                    leave: document.getElementById('officialLeaveView'),
-                    homework: document.getElementById('homeworkView'),
-                    schedule: document.getElementById('scheduleChangeView'),
-                    test: document.getElementById('testView'),
-                    activity: document.getElementById('activityView'),
-                    duty: document.getElementById('dutyView')
-                };
-
-                // ==========================================
-                // 6. View Navigation & 30s Inactivity Timer
-                // ==========================================
-                let inactivityTimer = null;
-
-                function resetInactivityTimer() {
-                    if (inactivityTimer) {
-                        clearTimeout(inactivityTimer);
-                        inactivityTimer = null;
-                    }
-                    if (!isLoggedIn) return;
-                    if (activeViewName === 'dashboard' || activeViewName === 'login') return;
-
-                    inactivityTimer = setTimeout(() => {
-                        if (isLoggedIn && activeViewName !== 'dashboard' && activeViewName !== 'login') {
-                            switchView('dashboard');
-                        }
-                    }, 30000);
-                }
-
-                ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll', 'click'].forEach((evtName) => {
-                    window.addEventListener(evtName, resetInactivityTimer, { passive: true });
+                const particleMat = new THREE.PointsMaterial({
+                    color: 0xfbbf24,
+                    size: 0.16,
+                    transparent: true,
+                    opacity: 0.55
                 });
 
-                function switchView(targetName) {
-                    activeViewName = targetName;
-                    Object.entries(views).forEach(([name, el]) => {
-                        if (!el) return;
-                        if (name === targetName) {
-                            el.classList.remove('hidden');
-                            el.classList.add('flex');
-                            requestAnimationFrame(() => {
-                                el.classList.remove('opacity-0', 'translate-y-4');
-                                el.classList.add('opacity-100', 'translate-y-0');
-                            });
-                        } else {
-                            el.classList.add('hidden', 'opacity-0', 'translate-y-4');
-                            el.classList.remove('flex', 'opacity-100', 'translate-y-0');
-                        }
-                    });
-                    resetInactivityTimer();
+                const particles = new THREE.Points(particleGeo, particleMat);
+                scene.add(particles);
+
+                // Primary Thin Vertical-Spinning Orbital Line (No Planets)
+                const outerOrbitGroup = new THREE.Group();
+                outerOrbitGroup.rotation.x = 0.35;
+
+                const ringGeo = new THREE.RingGeometry(15.56, 15.61, 180);
+                const ringMat = new THREE.MeshBasicMaterial({
+                    color: 0xf59e0b,
+                    side: THREE.DoubleSide,
+                    transparent: true,
+                    opacity: 0.32
+                });
+                const ring = new THREE.Mesh(ringGeo, ringMat);
+                outerOrbitGroup.add(ring);
+                scene.add(outerOrbitGroup);
+
+                // Secondary Thin Counter-Rotating Vertical Orbital Line (No Planets)
+                const innerOrbitGroup = new THREE.Group();
+                innerOrbitGroup.rotation.x = -0.55;
+
+                const innerRingGeo = new THREE.RingGeometry(11.30, 11.345, 180);
+                const innerRingMat = new THREE.MeshBasicMaterial({
+                    color: 0xea580c,
+                    side: THREE.DoubleSide,
+                    transparent: true,
+                    opacity: 0.25
+                });
+                const innerRing = new THREE.Mesh(innerRingGeo, innerRingMat);
+                innerOrbitGroup.add(innerRing);
+                scene.add(innerOrbitGroup);
+
+                window.addEventListener("resize", () => {
+                    camera.aspect = window.innerWidth / window.innerHeight;
+                    camera.updateProjectionMatrix();
+                    renderer.setSize(window.innerWidth, window.innerHeight);
+                });
+
+                function animate() {
+                    requestAnimationFrame(animate);
+                    particles.rotation.y += 0.0008;
+                    particles.rotation.x += 0.0003;
+
+                    // Pure vertical 3D orbital spin (around horizontal X-axis)
+                    outerOrbitGroup.rotation.x += 0.0065;
+                    innerOrbitGroup.rotation.x -= 0.0048;
+
+                    renderer.render(scene, camera);
                 }
 
-                // ==========================================
-                // 7. Generic Calendar & Detail Renderer
-                // ==========================================
-                function renderModuleCalendar(config) {
-                    const {
-                        monthObj,
-                        monthIdx,
-                        monthsList,
-                        selectedDate,
-                        dataMap,
-                        titleEl,
-                        prevBtn,
-                        nextBtn,
-                        monthBtns,
-                        gridEl,
-                        onSelectDate
-                    } = config;
+                animate();
+            } catch (err) {
+                console.warn("Three.js solar background skipped:", err);
+            }
+        }
 
-                    const todayStr = getMacauTodayStr();
+        // ==========================================
+        // PORTAL INITIALIZATION & AUTHENTICATION
+        // ==========================================
+        function initPortal() {
+            // 1. Bilingual Translation Dictionary
+            const translations = {
+                zh: {
+                    statusInSchool: "上學時段",
+                    statusAfterSchool: "放學時段",
+                    logoutBtn: "登出",
+                    updateLogBtn: "更新日誌",
+                    updateLogTitle: "更新日誌",
+                    update00Heading: "更新 0.0：",
+                    update00Time: "時間：2026-11-27 -- 22:20",
+                    update00Item1: "已為本網站新增伺服器，但暫時尚未對外開放。",
+                    update00Item2: "已更改用戶名稱及密碼，現在無法從原始前端程式碼中找到用戶名稱及密碼。",
+                    systemAccess: "系統存取",
+                    loginTitle: "S2F 系統登入",
+                    usernameLabel: "用戶名稱",
+                    usernamePlaceholder: "請輸入用戶名稱",
+                    passwordLabel: "密碼",
+                    passwordPlaceholder: "請輸入密碼",
+                    loginBtn: "登入",
+                    loginChecking: "正在驗證...",
+                    loginError: "用戶名稱或密碼錯誤，請再試一次。",
+                    loginEmptyError: "請輸入用戶名稱及密碼。",
+                    loginServerError: "系統伺服器連線失敗，請稍後再試。",
+                    greetingTopic: "您好, 您需要查詢什麼?",
+                    cat1: "公假名單",
+                    cat2: "功課",
+                    cat3: "調課/代課情況",
+                    cat4: "測驗",
+                    cat5: "學校活動",
+                    cat6: "值日",
+                    backBtn: "返回主選單",
+                    month11Label: "11月",
+                    month12Label: "12月",
+                    month01Label: "1月",
+                    legendPassed: "已過日期",
+                    legendToday: "今日",
+                    legendHasLeave: "有公假",
+                    legendHasHw: "有功課",
+                    legendHasSc: "有調/代課",
+                    legendHasTest: "有測驗",
+                    legendHasAct: "有活動",
+                    selectedDateLabel: "查詢日期",
+                    lastUpdatedLeave: "最後更新時間: 2026-11-27 22:10",
+                    lastUpdatedAct: "最後更新時間: 2026-11-27 22:10",
+                    noLeaveTitle: "本日暫無公假記錄",
+                    noLeaveDesc: "該日期目前沒有學生登記公假。",
+                    noHwTitle: "本日暫無功課記錄",
+                    noHwDesc: "該日期目前沒有已登記的功課項目。",
+                    noScTitle: "本日暫無調課/代課記錄",
+                    noScDesc: "本日所有課堂均按原定時間表進行。",
+                    noTestTitle: "本日暫無測驗記錄",
+                    noTestDesc: "該日期目前沒有已安排的測驗或默書。",
+                    noActTitle: "本日暫無學校活動",
+                    noActDesc: "該日期目前沒有已登記的學校活動。",
+                    leaveCountUnit: "位學生",
+                    hwCountUnit: "科功課",
+                    scCountUnit: "項變動",
+                    testCountUnit: "項測驗",
+                    actCountUnit: "項活動",
+                    weekdays: ["日", "一", "二", "三", "四", "五", "六"],
+                    dutyHeaderLabel: "當值日期",
+                    dutyDateValue: "2026年11月28日 (六)",
+                    dutyReminderTitle: "特別提醒",
+                    dutyReminderBody: "鍾鎧汶 (39) -- 3天"
+                },
+                en: {
+                    statusInSchool: "School Hours",
+                    statusAfterSchool: "After School",
+                    logoutBtn: "Logout",
+                    updateLogBtn: "Update Log",
+                    updateLogTitle: "Update Log",
+                    update00Heading: "Update 0.0:",
+                    update00Time: "Time: 2026-11-27 -- 22:20",
+                    update00Item1: "Added server in this website. But not opening to other where else yet.",
+                    update00Item2: "Changed username and password. Now username and password isn't possible to be found in original front code.",
+                    systemAccess: "SYSTEM ACCESS",
+                    loginTitle: "S2F System Login",
+                    usernameLabel: "Username",
+                    usernamePlaceholder: "Enter username",
+                    passwordLabel: "Password",
+                    passwordPlaceholder: "Enter password",
+                    loginBtn: "Sign In",
+                    loginChecking: "Verifying...",
+                    loginError: "Invalid username or password. Please try again.",
+                    loginEmptyError: "Please enter both username and password.",
+                    loginServerError: "Server connection failed. Please try again later.",
+                    greetingTopic: "Hello, what would you like to check?",
+                    cat1: "Official Leave List",
+                    cat2: "Homework",
+                    cat3: "Schedule / Sub Changes",
+                    cat4: "Tests & Quizzes",
+                    cat5: "School Activities",
+                    cat6: "Class Duty",
+                    backBtn: "Back to Menu",
+                    month11Label: "Nov",
+                    month12Label: "Dec",
+                    month01Label: "Jan",
+                    legendPassed: "Past",
+                    legendToday: "Today",
+                    legendHasLeave: "Leave",
+                    legendHasHw: "Homework",
+                    legendHasSc: "Change",
+                    legendHasTest: "Test",
+                    legendHasAct: "Activity",
+                    selectedDateLabel: "SELECTED DATE",
+                    lastUpdatedLeave: "Last Updated: 2026-11-27 22:10",
+                    lastUpdatedAct: "Last Updated: 2026-11-27 22:10",
+                    noLeaveTitle: "No Official Leave",
+                    noLeaveDesc: "No students are recorded on official leave for this date.",
+                    noHwTitle: "No Homework Listed",
+                    noHwDesc: "No homework assignments are recorded for this date.",
+                    noScTitle: "No Schedule Changes",
+                    noScDesc: "All lessons follow the regular timetable on this date.",
+                    noTestTitle: "No Tests Scheduled",
+                    noTestDesc: "No tests or quizzes are scheduled for this date.",
+                    noActTitle: "No School Activities",
+                    noActDesc: "No school events are scheduled for this date.",
+                    leaveCountUnit: "student(s)",
+                    hwCountUnit: "subject(s)",
+                    scCountUnit: "change(s)",
+                    testCountUnit: "test(s)",
+                    actCountUnit: "event(s)",
+                    weekdays: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+                    dutyHeaderLabel: "ACTIVE DUTY DATE",
+                    dutyDateValue: "2026-11-28 (Sat)",
+                    dutyReminderTitle: "Special Reminder",
+                    dutyReminderBody: "鍾鎧汶 (39) -- 3 days"
+                }
+            };
 
-                    if (titleEl) {
-                        titleEl.textContent = currentLang === 'zh' ? monthObj.labelZh : monthObj.labelEn;
+            let currentLang = "zh";
+            let isAuthenticated = false;
+            let explicitSubmitAttempted = false;
+
+            // 2. Module Datasets
+            const TODAY_STR = "2026-11-27";
+
+            // ==========================================
+            // 01. 公假名單 (Official Leave Data)
+            // ==========================================
+            const officialLeaveData = {
+                "2026-11-27": [
+                    { name: "王梓悠 (1)" },
+                    { name: "吳奕恩 (3)" },
+                    { name: "林建璋 (11)" },
+                    { name: "陳澤楷 (23)" },
+                    { name: "黃胤澤 (25)" },
+                    { name: "葉柏豪 (30)" },
+                    { name: "劉承之 (33)" },
+                    { name: "鄧正謙 (36)" },
+                    { name: "關芷晴 (41)" },
+                    { name: "關藹琳 (42)" }
+                ],
+                "2026-11-28": [
+                    { name: "王梓悠 (1)" },
+                    { name: "吳奕恩 (3)" },
+                    { name: "周琬兒 (9)" },
+                    { name: "林建璋 (11)" },
+                    { name: "張欣蔓 (15)" },
+                    { name: "莫梓明 (18)" },
+                    { name: "許思然 (19)" },
+                    { name: "陳心喬 (20)" },
+                    { name: "陳澤楷 (23)" },
+                    { name: "黃胤澤 (25)" },
+                    { name: "黃詠彤 (28)" },
+                    { name: "葉柏豪 (30)" },
+                    { name: "趙文濼 (31)" },
+                    { name: "劉承之 (33)" },
+                    { name: "劉芷琪 (34)" },
+                    { name: "蔡智晴 (35)" },
+                    { name: "鄧正謙 (36)" },
+                    { name: "關芷晴 (41)" },
+                    { name: "關藹琳 (42)" }
+                ],
+                "2026-11-30": [
+                    { name: "許思然 (19)" }
+                ],
+                "2026-12-01": [
+                    { name: "許思然 (19)" },
+                    { name: "關芷晴 (41)" }
+                ],
+                "2026-12-02": [
+                    { name: "許思然 (19)" },
+                    { name: "關芷晴 (41)" }
+                ],
+                "2026-12-03": [
+                    { name: "許思然 (19)" },
+                    { name: "關芷晴 (41)" }
+                ],
+                "2026-12-04": [
+                    { name: "許思然 (19)" },
+                    { name: "關芷晴 (41)" }
+                ],
+                "2026-12-05": [
+                    { name: "關芷晴 (41)" }
+                ]
+            };
+
+            // ==========================================
+            // 02. 功課 (Homework Data)
+            // ==========================================
+            const homeworkData = {
+                "2026-12-02": [
+                    {
+                        subjectZh: "設科",
+                        subjectEn: "Design & Technology / Science",
+                        groups: [
+                            {
+                                groupZh: "吳sir半班",
+                                groupEn: "Mr. Ng's Half-Class",
+                                tasks: [
+                                    "Week 12 -- 打字",
+                                    "Logbook -- 第二段第二課 \"力的種類、表示與作用效果\"",
+                                    "K230 -- 第五課 \"看見顏色\"",
+                                    "科學學習系統預習 -- 第三課 \"質量、重力、合力與二力平衡\""
+                                ]
+                            },
+                            {
+                                groupZh: "李sir半班",
+                                groupEn: "Mr. Lee's Half-Class",
+                                tasks: [
+                                    "Onshape -- 書簽",
+                                    "科學學習系統預習 -- 第三課 \"質量、重力、合力與二力平衡\""
+                                ]
+                            }
+                        ]
                     }
-                    if (prevBtn) prevBtn.disabled = monthIdx === 0;
-                    if (nextBtn) nextBtn.disabled = monthIdx === monthsList.length - 1;
+                ]
+            };
 
-                    monthBtns.forEach((btn, idx) => {
-                        if (!btn) return;
-                        if (idx === monthIdx) {
-                            btn.className = 'rounded-full px-3 py-1 text-xs font-bold bg-amber-500 text-stone-950 shadow-[0_0_10px_rgba(245,158,11,0.35)] transition-all cursor-pointer';
+            // ==========================================
+            // 03. 調課/代課情況 (Schedule / Sub Changes)
+            // ==========================================
+            const scheduleChangeData = {
+                "2026-11-30": [
+                    {
+                        periodZh: "第四堂",
+                        periodEn: "Period 4",
+                        typeZh: "調課",
+                        typeEn: "Swap",
+                        fromZh: "品德公民",
+                        fromEn: "Moral & Civic Education",
+                        toZh: "代數",
+                        toEn: "Algebra"
+                    },
+                    {
+                        periodZh: "第四、五堂",
+                        periodEn: "Periods 4 & 5",
+                        typeZh: "代課",
+                        typeEn: "Substitution",
+                        noteZh: "由吳倩瀅老師代兩堂代數",
+                        noteEn: "2 Algebra lessons covered by Ms. Ng Sin Ieng"
+                    }
+                ],
+                "2026-12-03": [
+                    {
+                        periodZh: "第四堂",
+                        periodEn: "Period 4",
+                        typeZh: "調課",
+                        typeEn: "Swap",
+                        fromZh: "代數",
+                        fromEn: "Algebra",
+                        toZh: "中文",
+                        toEn: "Chinese"
+                    }
+                ],
+                "2026-12-04": [
+                    {
+                        periodZh: "第五堂",
+                        periodEn: "Period 5",
+                        typeZh: "調課",
+                        typeEn: "Swap",
+                        fromZh: "代數",
+                        fromEn: "Algebra",
+                        toZh: "地理",
+                        toEn: "Geography"
+                    }
+                ],
+                "2026-12-05": [
+                    {
+                        periodZh: "第四堂",
+                        periodEn: "Period 4",
+                        typeZh: "調課",
+                        typeEn: "Swap",
+                        fromZh: "中文",
+                        fromEn: "Chinese",
+                        toZh: "代數",
+                        toEn: "Algebra"
+                    },
+                    {
+                        periodZh: "第五堂",
+                        periodEn: "Period 5",
+                        typeZh: "調課",
+                        typeEn: "Swap",
+                        fromZh: "地理",
+                        fromEn: "Geography",
+                        toZh: "代數",
+                        toEn: "Algebra"
+                    }
+                ]
+            };
+
+            // ==========================================
+            // 04. 測驗 (Tests & Quizzes Data)
+            // ==========================================
+            const testData = {
+                "2026-11-28": [
+                    {
+                        subjectZh: "英文",
+                        subjectEn: "English",
+                        titleZh: "English Graded Reading",
+                        titleEn: "English Graded Reading",
+                        sections: []
+                    }
+                ],
+                "2026-12-04": [
+                    {
+                        subjectZh: "英文",
+                        subjectEn: "English",
+                        titleZh: "English Dictation",
+                        titleEn: "English Dictation",
+                        sections: [
+                            {
+                                headingZh: "默書範圍 / Scope",
+                                headingEn: "Dictation Scope",
+                                items: [
+                                    "OEF Unit 4 Text 1 Para. 2-5",
+                                    "One Extra Passage (See the attachment on eClass)"
+                                ]
+                            }
+                        ]
+                    }
+                ],
+                "2026-12-05": [
+                    {
+                        subjectZh: "英文",
+                        subjectEn: "English",
+                        titleZh: "English Graded Reading",
+                        titleEn: "English Graded Reading",
+                        sections: []
+                    }
+                ],
+                "2026-12-07": [
+                    {
+                        subjectZh: "數學",
+                        subjectEn: "Mathematics",
+                        titleZh: "數學基力",
+                        titleEn: "Mathematics Basic Competency Test",
+                        sections: [
+                            {
+                                headingZh: "代數",
+                                headingEn: "Algebra",
+                                items: ["9.1 分式的概念 至 9.3 分式的乘除法"]
+                            },
+                            {
+                                headingZh: "幾何",
+                                headingEn: "Geometry",
+                                items: ["1.6 線段垂直平分線 至 1.7 軸對稱"]
+                            }
+                        ]
+                    }
+                ],
+                "2026-12-08": [
+                    {
+                        subjectZh: "中文",
+                        subjectEn: "Chinese",
+                        titleZh: "中文大測",
+                        titleEn: "Chinese Major Test",
+                        sections: [
+                            {
+                                headingZh: "課文與默寫",
+                                headingEn: "Texts & Dictation",
+                                items: [
+                                    "詳讀：《孔乙己》、《感遇》、《西塞山懷古》",
+                                    "自讀：《從軍行》、《惡蚊》、《遊山西村》",
+                                    "默寫：《感遇》、《西塞山懷古》、《遊山西村》、名句（1-8）"
+                                ]
+                            },
+                            {
+                                headingZh: "成語、名句與語基",
+                                headingEn: "Idioms, Famous Quotes & Grammar",
+                                items: [
+                                    "成語：常見近義成語辨析(54-57)、重點成語(98-106)",
+                                    "名句：1-8",
+                                    "語基：是字句及存現句"
+                                ]
+                            },
+                            {
+                                headingZh: "常識與閱讀理解",
+                                headingEn: "Cultural Knowledge & Comprehension",
+                                items: [
+                                    "中國文學常識、澳門文化常識",
+                                    "文言文閱讀理解",
+                                    "材料分析"
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            };
+
+            // ==========================================
+            // 05. 學校活動 (School Activities Data)
+            // ==========================================
+            const activityData = {
+                "2026-11-27": [
+                    {
+                        timeZh: "10:30 ~ 12:15",
+                        timeEn: "10:30 ~ 12:15",
+                        titleZh: "參觀美術館",
+                        titleEn: "Art Museum Visit"
+                    }
+                ],
+                "2026-11-30": [
+                    {
+                        timeZh: "第三堂",
+                        timeEn: "Period 3",
+                        titleZh: "遠足前會議",
+                        titleEn: "Pre-Hiking Briefing Meeting"
+                    }
+                ],
+                "2026-12-02": [
+                    {
+                        timeZh: "15:50 ~ 16:30",
+                        timeEn: "15:50 ~ 16:30",
+                        locationZh: "位置: 圖書館H406",
+                        locationEn: "Location: Library H406",
+                        titleZh: "園遊會攤位籌備事項",
+                        titleEn: "School Fair Booth Preparation",
+                        bullets: [
+                            "交園遊會攤位借用物品憑條",
+                            "確認攤位名稱",
+                            "抽簽攤位位置"
+                        ]
+                    }
+                ],
+                "2026-12-12": [
+                    {
+                        timeZh: "上午",
+                        timeEn: "Morning",
+                        titleZh: "遠足",
+                        titleEn: "School Hiking"
+                    },
+                    {
+                        timeZh: "下午",
+                        timeEn: "Afternoon",
+                        titleZh: "BBQ",
+                        titleEn: "BBQ"
+                    }
+                ],
+                "2026-12-15": [
+                    {
+                        timeZh: "截止提交",
+                        timeEn: "Submission",
+                        titleZh: "交聖誕壁報",
+                        titleEn: "Submit Christmas Wall Bulletin"
+                    }
+                ],
+                "2026-12-16": [
+                    {
+                        timeZh: "全天",
+                        timeEn: "All Day",
+                        titleZh: "去澳門大學上課",
+                        titleEn: "Classes at University of Macau"
+                    }
+                ],
+                "2026-12-19": [
+                    {
+                        timeZh: "上午",
+                        timeEn: "Morning",
+                        titleZh: "聖誕聯歡",
+                        titleEn: "Christmas Party"
+                    },
+                    {
+                        timeZh: "下午",
+                        timeEn: "Afternoon",
+                        titleZh: "聖誕攤位",
+                        titleEn: "Christmas Booths"
+                    }
+                ],
+                "2026-12-20": [
+                    {
+                        timeZh: "全天",
+                        timeEn: "All Day",
+                        isHoliday: true,
+                        titleZh: "澳門回歸日 (放假)",
+                        titleEn: "Macao SAR Establishment Day (Holiday)"
+                    }
+                ],
+                "2026-12-21": [{ timeZh: "全天", timeEn: "All Day", isHoliday: true, titleZh: "聖誕假 (放假)", titleEn: "Christmas Holiday (No School)" }],
+                "2026-12-22": [{ timeZh: "全天", timeEn: "All Day", isHoliday: true, titleZh: "聖誕假 (放假)", titleEn: "Christmas Holiday (No School)" }],
+                "2026-12-23": [{ timeZh: "全天", timeEn: "All Day", isHoliday: true, titleZh: "聖誕假 (放假)", titleEn: "Christmas Holiday (No School)" }],
+                "2026-12-24": [{ timeZh: "全天", timeEn: "All Day", isHoliday: true, titleZh: "聖誕假 (放假)", titleEn: "Christmas Holiday (No School)" }],
+                "2026-12-25": [{ timeZh: "全天", timeEn: "All Day", isHoliday: true, titleZh: "聖誕假 (放假)", titleEn: "Christmas Holiday (No School)" }],
+                "2026-12-26": [{ timeZh: "全天", timeEn: "All Day", isHoliday: true, titleZh: "聖誕假 (放假)", titleEn: "Christmas Holiday (No School)" }],
+                "2026-12-27": [{ timeZh: "全天", timeEn: "All Day", isHoliday: true, titleZh: "聖誕假 (放假)", titleEn: "Christmas Holiday (No School)" }],
+                "2026-12-28": [{ timeZh: "全天", timeEn: "All Day", isHoliday: true, titleZh: "聖誕假 (放假)", titleEn: "Christmas Holiday (No School)" }],
+                "2026-12-29": [{ timeZh: "全天", timeEn: "All Day", isHoliday: true, titleZh: "聖誕假 (放假)", titleEn: "Christmas Holiday (No School)" }],
+                "2026-12-30": [{ timeZh: "全天", timeEn: "All Day", isHoliday: true, titleZh: "聖誕假 (放假)", titleEn: "Christmas Holiday (No School)" }],
+                "2026-12-31": [{ timeZh: "全天", timeEn: "All Day", isHoliday: true, titleZh: "聖誕假 (放假)", titleEn: "Christmas Holiday (No School)" }],
+                "2027-01-01": [{ timeZh: "全天", timeEn: "All Day", isHoliday: true, titleZh: "元旦 (放假)", titleEn: "New Year's Day (Holiday)" }],
+                "2027-01-02": [{ timeZh: "全天", timeEn: "All Day", isHoliday: true, titleZh: "元旦 (放假)", titleEn: "New Year's Day (Holiday)" }],
+                "2027-01-03": [{ timeZh: "全天", timeEn: "All Day", isHoliday: true, titleZh: "元旦 (放假)", titleEn: "New Year's Day (Holiday)" }]
+            };
+
+            // 06. 值日 (Duty Roster)
+            const dutyRosterRoles = [
+                {
+                    roleZh: "掃地",
+                    roleEn: "Sweeping",
+                    members: ["鍾鎧汶 (39)"]
+                },
+                {
+                    roleZh: "總控台",
+                    roleEn: "Control Desk",
+                    members: ["梁旭言 (17)"]
+                },
+                {
+                    roleZh: "擦黑板",
+                    roleEn: "Whiteboard Cleaning",
+                    members: ["陳昊廷 (21)"],
+                    noteZh: "原由莫梓明 (18)做, 但因公假, 先由陳昊廷 (21)做",
+                    noteEn: "Originally 莫梓明 (18), on official leave; covered by 陳昊廷 (21)"
+                },
+                {
+                    roleZh: "倒垃圾",
+                    roleEn: "Trash Disposal",
+                    members: ["陳澤楷 (23)"],
+                    noteZh: "原由許思然 (19)做, 但因公假, 同時陳樂妍 (22)請假, 先由陳澤楷 (23)做",
+                    noteEn: "Originally 許思然 (19) (official leave) & 陳樂妍 (22) on leave; covered by 陳澤楷 (23)"
+                }
+            ];
+
+            // 3. Macau Real-Time Clock & School Status
+            const schoolStatusDot = document.getElementById("schoolStatusDot");
+            const schoolStatusText = document.getElementById("schoolStatusText");
+            const macauDateText = document.getElementById("macauDateText");
+            const macauClockText = document.getElementById("macauClockText");
+
+            function updateMacauTimeAndStatus() {
+                try {
+                    const now = new Date();
+                    const formatter = new Intl.DateTimeFormat("en-GB", {
+                        timeZone: "Asia/Macau",
+                        year: "numeric",
+                        month: "2-digit",
+                        day: "2-digit",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                        second: "2-digit",
+                        weekday: "short",
+                        hour12: false
+                    });
+                    const parts = formatter.formatToParts(now);
+                    const map = {};
+                    parts.forEach((p) => {
+                        map[p.type] = p.value;
+                    });
+
+                    const year = map.year || "2026";
+                    const month = map.month || "11";
+                    const day = map.day || "27";
+                    const hour = parseInt(map.hour || "0", 10);
+                    const minute = parseInt(map.minute || "0", 10);
+                    const weekday = map.weekday || "Fri";
+
+                    if (macauDateText) {
+                        macauDateText.textContent =
+                            currentLang === "zh"
+                                ? `${year}年${month}月${day}日`
+                                : `${year}-${month}-${day}`;
+                    }
+                    if (macauClockText) {
+                        macauClockText.textContent = `${map.hour || "00"}:${map.minute || "00"}:${map.second || "00"}`;
+                    }
+
+                    const isWeekday = !["Sat", "Sun"].includes(weekday);
+                    const mins = hour * 60 + minute;
+                    const inSchool = isWeekday && mins >= 8 * 60 + 10 && mins <= 16 * 60 + 30;
+
+                    if (schoolStatusDot && schoolStatusText) {
+                        if (inSchool) {
+                            schoolStatusDot.className = "w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399] transition-all duration-300";
+                            schoolStatusText.textContent = translations[currentLang].statusInSchool;
                         } else {
-                            btn.className = 'rounded-full px-3 py-1 text-xs font-medium text-amber-200/75 hover:text-amber-50 transition-all cursor-pointer';
+                            schoolStatusDot.className = "w-2.5 h-2.5 rounded-full bg-amber-400 shadow-[0_0_8px_#fbbf24] transition-all duration-300";
+                            schoolStatusText.textContent = translations[currentLang].statusAfterSchool;
+                        }
+                    }
+                } catch (e) {
+                    console.warn("Clock update warning:", e);
+                }
+            }
+
+            updateMacauTimeAndStatus();
+            setInterval(updateMacauTimeAndStatus, 1000);
+
+            // 4. Generic Calendar Factory for Modules 01 - 05
+            function createCalendarModule(config) {
+                const {
+                    months,
+                    dataMap,
+                    monthTitleId,
+                    prevBtnId,
+                    nextBtnId,
+                    monthBtns,
+                    weekdaysId,
+                    gridId,
+                    selectedHeadingId,
+                    countBadgeId,
+                    detailContentId,
+                    countUnitKey,
+                    noDataTitleKey,
+                    noDataDescKey,
+                    renderItemsFn
+                } = config;
+
+                let currentMonthIdx = 0;
+                let selectedDate = TODAY_STR;
+
+                const monthTitleEl = document.getElementById(monthTitleId);
+                const prevBtn = document.getElementById(prevBtnId);
+                const nextBtn = document.getElementById(nextBtnId);
+                const weekdaysEl = document.getElementById(weekdaysId);
+                const gridEl = document.getElementById(gridId);
+                const selectedHeadingEl = document.getElementById(selectedHeadingId);
+                const countBadgeEl = document.getElementById(countBadgeId);
+                const detailContentEl = document.getElementById(detailContentId);
+
+                function renderDetails() {
+                    if (!selectedHeadingEl || !detailContentEl) return;
+                    selectedHeadingEl.textContent = selectedDate;
+                    const items = dataMap[selectedDate] || [];
+
+                    if (items.length === 0) {
+                        if (countBadgeEl) countBadgeEl.classList.add("hidden");
+                        detailContentEl.className = "mt-3 flex-1 min-h-0 overflow-y-auto pr-1 flex flex-col justify-center";
+                        detailContentEl.innerHTML = `
+                            <div class="animate-card-pop rounded-2xl bg-[#120703]/75 border border-amber-500/20 p-6 text-center">
+                                <div class="w-11 h-11 rounded-2xl bg-amber-500/10 border border-amber-500/25 flex items-center justify-center mx-auto mb-3 text-amber-300/75">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                    </svg>
+                                </div>
+                                <h4 class="text-sm sm:text-base font-bold text-amber-100">${translations[currentLang][noDataTitleKey]}</h4>
+                                <p class="text-xs sm:text-sm text-amber-200/60 mt-1">${translations[currentLang][noDataDescKey]}</p>
+                            </div>
+                        `;
+                    } else {
+                        if (countBadgeEl) {
+                            countBadgeEl.classList.remove("hidden");
+                            countBadgeEl.textContent = `${items.length} ${translations[currentLang][countUnitKey]}`;
+                        }
+                        detailContentEl.className = "mt-3 flex-1 min-h-0 overflow-y-auto pr-1 space-y-3";
+                        detailContentEl.innerHTML = renderItemsFn(items, currentLang);
+                    }
+                }
+
+                function renderCalendar() {
+                    const { year, month } = months[currentMonthIdx];
+                    if (monthTitleEl) {
+                        const monthNamesEn = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+                        monthTitleEl.textContent =
+                            currentLang === "zh"
+                                ? `${year}年 ${month}月`
+                                : `${monthNamesEn[month - 1]} ${year}`;
+                    }
+
+                    if (prevBtn) prevBtn.disabled = currentMonthIdx === 0;
+                    if (nextBtn) nextBtn.disabled = currentMonthIdx === months.length - 1;
+
+                    monthBtns.forEach((btnId, idx) => {
+                        const btn = document.getElementById(btnId);
+                        if (!btn) return;
+                        if (idx === currentMonthIdx) {
+                            btn.className = "rounded-full px-3 py-1 text-xs font-bold bg-amber-500 text-stone-950 shadow-[0_0_10px_rgba(245,158,11,0.35)] transition-all cursor-pointer";
+                        } else {
+                            btn.className = "rounded-full px-3 py-1 text-xs font-medium text-amber-200/75 hover:text-amber-50 transition-all cursor-pointer";
                         }
                     });
 
-                    if (!gridEl) return;
-                    gridEl.innerHTML = '';
+                    if (weekdaysEl) {
+                        weekdaysEl.innerHTML = translations[currentLang].weekdays
+                            .map((d) => `<span>${d}</span>`)
+                            .join("");
+                    }
 
-                    const firstDay = new Date(monthObj.year, monthObj.month - 1, 1).getDay();
-                    const daysInMonth = new Date(monthObj.year, monthObj.month, 0).getDate();
+                    if (!gridEl) return;
+                    const firstDay = new Date(year, month - 1, 1).getDay();
+                    const daysInMonth = new Date(year, month, 0).getDate();
+                    let cellsHtml = "";
 
                     for (let i = 0; i < firstDay; i++) {
-                        const emptyCell = document.createElement('div');
-                        emptyCell.className = 'rounded-xl sm:rounded-2xl bg-transparent';
-                        gridEl.appendChild(emptyCell);
+                        cellsHtml += `<div class="rounded-2xl bg-white/[0.02] border border-white/[0.04]"></div>`;
                     }
 
                     for (let day = 1; day <= daysInMonth; day++) {
-                        const mm = String(monthObj.month).padStart(2, '0');
-                        const dd = String(day).padStart(2, '0');
-                        const dateStr = `${monthObj.year}-${mm}-${dd}`;
-                        const isPassed = dateStr < todayStr;
-                        const isToday = dateStr === todayStr;
+                        const dateStr = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+                        const isToday = dateStr === TODAY_STR;
+                        const isPast = dateStr < TODAY_STR;
                         const isSelected = dateStr === selectedDate;
-                        const hasItems = Array.isArray(dataMap[dateStr]) && dataMap[dateStr].length > 0;
+                        const hasEvents = Array.isArray(dataMap[dateStr]) && dataMap[dateStr].length > 0;
 
-                        const btn = document.createElement('button');
-                        btn.type = 'button';
-                        btn.setAttribute('aria-label', dateStr);
-
-                        let baseClass = 'group relative w-full h-full min-h-[38px] sm:min-h-[44px] rounded-xl sm:rounded-2xl flex flex-col items-center justify-center font-mono text-xs sm:text-sm transition-all duration-300 cursor-pointer border ';
-
-                        if (isPassed) {
-                            baseClass += isSelected
-                                ? 'bg-white/15 border-gray-400/70 text-gray-300 font-bold '
-                                : 'bg-white/[0.04] border-white/10 text-gray-500 hover:bg-white/10 hover:text-gray-300 ';
-                        } else if (hasItems) {
-                            if (isSelected) {
-                                baseClass += 'bg-emerald-500/25 border-emerald-400 text-amber-50 font-bold shadow-[0_0_20px_rgba(52,211,153,0.4)] hover:-translate-y-0.5 ';
-                            } else if (isToday) {
-                                baseClass += 'bg-gradient-to-br from-amber-500/25 to-emerald-500/20 border-emerald-400/80 text-amber-100 font-bold shadow-[0_0_16px_rgba(52,211,153,0.28)] hover:border-emerald-300 hover:-translate-y-0.5 hover:shadow-[0_0_22px_rgba(52,211,153,0.42)] ';
-                            } else {
-                                baseClass += 'bg-emerald-500/12 border-emerald-400/50 text-amber-100 font-semibold shadow-[0_0_14px_rgba(16,185,129,0.2)] hover:bg-emerald-500/20 hover:border-emerald-300 hover:-translate-y-0.5 hover:shadow-[0_0_20px_rgba(52,211,153,0.38)] ';
-                            }
-                        } else if (isSelected) {
-                            baseClass += 'bg-amber-500/25 border-amber-400 text-amber-100 font-bold shadow-[0_0_16px_rgba(245,158,11,0.3)] hover:-translate-y-0.5 ';
+                        let cellClasses = "relative rounded-2xl border flex flex-col items-center justify-center p-1.5 sm:p-2 transition-all cursor-pointer select-none ";
+                        if (isSelected) {
+                            cellClasses += "bg-amber-500/30 border-amber-300 text-amber-50 shadow-[0_0_16px_rgba(251,191,36,0.35)] scale-[1.02] ";
                         } else if (isToday) {
-                            baseClass += 'bg-amber-500/15 border-amber-400/70 text-amber-200 font-bold hover:bg-amber-500/25 hover:-translate-y-0.5 hover:shadow-[0_0_14px_rgba(245,158,11,0.25)] ';
+                            cellClasses += "bg-amber-500/20 border-amber-400/80 text-amber-100 hover:bg-amber-500/30 ";
+                        } else if (isPast) {
+                            cellClasses += "bg-white/[0.04] border-white/10 text-gray-400 hover:bg-white/[0.08] ";
                         } else {
-                            baseClass += 'bg-[#120703]/70 border-amber-500/20 text-amber-100/90 hover:border-amber-400/60 hover:bg-amber-500/10 hover:-translate-y-0.5 ';
+                            cellClasses += "bg-[#120703]/75 border-amber-500/20 text-amber-100/90 hover:bg-amber-500/15 hover:border-amber-400/50 ";
                         }
 
-                        btn.className = baseClass;
-                        btn.innerHTML = `
-                            <span>${day}</span>
-                            ${hasItems && !isPassed ? '<span class="mt-0.5 w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399] group-hover:scale-125 transition-transform"></span>' : ''}
-                        `;
+                        const dotHtml = hasEvents
+                            ? `<span class="mt-1 w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-emerald-400 shadow-[0_0_6px_#34d399]"></span>`
+                            : `<span class="mt-1 w-1.5 h-1.5 opacity-0"></span>`;
 
-                        btn.addEventListener('click', () => {
-                            onSelectDate(dateStr);
+                        cellsHtml += `
+                            <button type="button" data-date="${dateStr}" class="${cellClasses}">
+                                <span class="font-mono text-xs sm:text-sm font-semibold">${day}</span>
+                                ${dotHtml}
+                            </button>
+                        `;
+                    }
+
+                    gridEl.innerHTML = cellsHtml;
+                    gridEl.querySelectorAll("button[data-date]").forEach((btn) => {
+                        btn.addEventListener("click", () => {
+                            selectedDate = btn.getAttribute("data-date");
+                            renderCalendar();
+                            renderDetails();
                         });
+                    });
 
-                        gridEl.appendChild(btn);
-                    }
+                    renderDetails();
                 }
 
-                // ==========================================
-                // 8. Detail Renderers for Modules 01 - 06
-                // ==========================================
-                function renderLeaveDetails(dateStr) {
-                    const headingEl = document.getElementById('selectedDateHeading');
-                    const badgeEl = document.getElementById('leaveCountBadge');
-                    const contentEl = document.getElementById('leaveDetailContent');
-                    if (!headingEl || !badgeEl || !contentEl) return;
-
-                    const todayStr = getMacauTodayStr();
-                    headingEl.textContent = dateStr;
-
-                    if (dateStr < todayStr) {
-                        badgeEl.classList.add('hidden');
-                        contentEl.className = 'mt-3 flex-1 min-h-0 overflow-y-auto pr-1 flex flex-col justify-center';
-                        contentEl.innerHTML = `
-                            <div class="rounded-2xl bg-white/[0.04] border border-white/10 p-6 text-center">
-                                <p class="text-sm sm:text-base text-gray-400">${translations[currentLang].passedDateMsg}</p>
-                            </div>
-                        `;
-                        return;
-                    }
-
-                    const list = officialLeaveData[dateStr];
-                    if (!list || list.length === 0) {
-                        badgeEl.classList.add('hidden');
-                        contentEl.className = 'mt-3 flex-1 min-h-0 overflow-y-auto pr-1 flex flex-col justify-center';
-                        contentEl.innerHTML = `
-                            <div class="rounded-2xl bg-[#120703]/65 border border-amber-500/20 p-6 text-center">
-                                <p class="text-sm sm:text-base text-amber-200/75">${translations[currentLang].noLeaveMsg}</p>
-                            </div>
-                        `;
-                        return;
-                    }
-
-                    badgeEl.classList.remove('hidden');
-                    badgeEl.textContent = `${list.length} ${translations[currentLang].peopleUnit}`;
-
-                    const cardStyleClass = 'animate-card-pop group relative overflow-hidden rounded-2xl bg-gradient-to-br from-amber-500/20 via-[#261107]/90 to-orange-500/12 hover:from-amber-500/32 hover:via-amber-500/18 hover:to-orange-500/25 border border-amber-400/50 hover:border-amber-300 px-3.5 py-2 flex items-center justify-between gap-2 shadow-[inset_0_1px_0_rgba(254,243,199,0.22),0_4px_18px_rgba(245,158,11,0.15)] hover:shadow-[inset_0_1px_0_rgba(254,243,199,0.4),0_0_26px_rgba(251,191,36,0.38)] hover:-translate-y-0.5 active:scale-[0.99] transition-all duration-300';
-
-                    // Use 10-slot grid (2 columns x 5 rows) when <= 10 people so 1 or 2 names stay in the first slot(s) without stretching
-                    if (list.length <= 10) {
-                        contentEl.className = 'mt-3 pt-1 flex-1 min-h-0 overflow-y-auto pr-1 grid grid-cols-2 grid-rows-5 gap-2 sm:gap-2.5';
-                        let html = '';
-                        for (let i = 0; i < 10; i++) {
-                            if (i < list.length) {
-                                html += `
-                                    <div style="animation-delay: ${i * 35}ms" class="${cardStyleClass}">
-                                        <span class="text-xs sm:text-sm font-semibold text-amber-50 group-hover:text-amber-200 truncate transition-colors">${list[i]}</span>
-                                        <span class="w-2 h-2 shrink-0 rounded-full bg-amber-400 shadow-[0_0_8px_#fbbf24] group-hover:scale-125 group-hover:bg-amber-300 transition-all"></span>
-                                    </div>
-                                `;
-                            } else {
-                                html += `<div class="rounded-2xl border border-transparent"></div>`;
-                            }
+                if (prevBtn) {
+                    prevBtn.addEventListener("click", () => {
+                        if (currentMonthIdx > 0) {
+                            currentMonthIdx--;
+                            renderCalendar();
                         }
-                        contentEl.innerHTML = html;
-                    } else {
-                        contentEl.className = 'mt-3 pt-1 flex-1 min-h-0 overflow-y-auto pr-1 grid grid-cols-2 gap-2 sm:gap-2.5 content-start';
-                        contentEl.innerHTML = list.map((entry, idx) => `
-                            <div style="animation-delay: ${Math.min(idx, 12) * 30}ms" class="${cardStyleClass}">
-                                <span class="text-xs sm:text-sm font-semibold text-amber-50 group-hover:text-amber-200 truncate transition-colors">${entry}</span>
-                                <span class="w-2 h-2 shrink-0 rounded-full bg-amber-400 shadow-[0_0_8px_#fbbf24] group-hover:scale-125 group-hover:bg-amber-300 transition-all"></span>
-                            </div>
-                        `).join('');
-                    }
+                    });
                 }
 
-                function renderGenericItemDetails(dateStr, dataMap, headingId, badgeId, contentId, emptyKey) {
-                    const headingEl = document.getElementById(headingId);
-                    const badgeEl = document.getElementById(badgeId);
-                    const contentEl = document.getElementById(contentId);
-                    if (!headingEl || !badgeEl || !contentEl) return;
+                if (nextBtn) {
+                    nextBtn.addEventListener("click", () => {
+                        if (currentMonthIdx < months.length - 1) {
+                            currentMonthIdx++;
+                            renderCalendar();
+                        }
+                    });
+                }
 
-                    const todayStr = getMacauTodayStr();
-                    headingEl.textContent = dateStr;
-
-                    if (dateStr < todayStr) {
-                        badgeEl.classList.add('hidden');
-                        contentEl.className = 'mt-3 flex-1 min-h-0 overflow-y-auto pr-1 flex flex-col justify-center';
-                        contentEl.innerHTML = `
-                            <div class="rounded-2xl bg-white/[0.04] border border-white/10 p-6 text-center">
-                                <p class="text-sm sm:text-base text-gray-400">${translations[currentLang].passedDateMsg}</p>
-                            </div>
-                        `;
-                        return;
+                monthBtns.forEach((btnId, idx) => {
+                    const btn = document.getElementById(btnId);
+                    if (btn) {
+                        btn.addEventListener("click", () => {
+                            currentMonthIdx = idx;
+                            renderCalendar();
+                        });
                     }
+                });
 
-                    const items = dataMap[dateStr];
-                    if (!items || items.length === 0) {
-                        badgeEl.classList.add('hidden');
-                        contentEl.className = 'mt-3 flex-1 min-h-0 overflow-y-auto pr-1 flex flex-col justify-center';
-                        contentEl.innerHTML = `
-                            <div class="rounded-2xl bg-[#120703]/65 border border-amber-500/20 p-6 text-center">
-                                <p class="text-sm sm:text-base text-amber-200/75">${translations[currentLang][emptyKey]}</p>
+                renderCalendar();
+                return { refresh: renderCalendar };
+            }
+
+            // Initialize All 5 Calendar Modules
+            const leaveCal = createCalendarModule({
+                months: [
+                    { year: 2026, month: 11 },
+                    { year: 2026, month: 12 }
+                ],
+                dataMap: officialLeaveData,
+                monthTitleId: "leaveCalendarMonthTitle",
+                prevBtnId: "leavePrevMonthBtn",
+                nextBtnId: "leaveNextMonthBtn",
+                monthBtns: ["leaveMonth11Btn", "leaveMonth12Btn"],
+                weekdaysId: "calendarWeekdays",
+                gridId: "leaveCalendarGrid",
+                selectedHeadingId: "selectedDateHeading",
+                countBadgeId: "leaveCountBadge",
+                detailContentId: "leaveDetailContent",
+                countUnitKey: "leaveCountUnit",
+                noDataTitleKey: "noLeaveTitle",
+                noDataDescKey: "noLeaveDesc",
+                renderItemsFn: (items, lang) =>
+                    items
+                        .map(
+                            (item, idx) => `
+                        <div class="animate-card-pop rounded-2xl bg-gradient-to-br from-amber-500/15 via-[#120703]/90 to-orange-500/10 border border-amber-400/35 px-4 py-3 flex items-center justify-between gap-3">
+                            <div class="flex items-center gap-3">
+                                <span class="w-6 h-6 rounded-lg bg-amber-500/20 border border-amber-400/45 flex items-center justify-center font-mono text-xs font-bold text-amber-300">
+                                    ${idx + 1}
+                                </span>
+                                <span class="text-sm sm:text-base font-bold text-amber-50">${item.name}</span>
                             </div>
-                        `;
-                        return;
-                    }
+                            <span class="shrink-0 rounded-full bg-emerald-500/15 border border-emerald-400/40 px-2.5 py-0.5 font-mono text-[11px] text-emerald-300">
+                                ${lang === "zh" ? "公假" : "Leave"}
+                            </span>
+                        </div>
+                    `
+                        )
+                        .join("")
+            });
 
-                    const hasStructuredGroups = items.some((entry) => entry && typeof entry === 'object' && Array.isArray(entry.groups));
-
-                    if (hasStructuredGroups) {
-                        const totalTasks = items.reduce((sum, entry) => {
-                            if (entry && Array.isArray(entry.groups)) {
-                                return sum + entry.groups.reduce((gSum, g) => gSum + (g.tasks ? g.tasks.length : 0), 0);
-                            }
-                            return sum + 1;
-                        }, 0);
-
-                        badgeEl.classList.remove('hidden');
-                        badgeEl.textContent = currentLang === 'zh'
-                            ? `${items.length} 科 · ${totalTasks} 項`
-                            : `${items.length} Subject · ${totalTasks} Tasks`;
-
-                        contentEl.className = 'mt-3 pt-1 flex-1 min-h-0 overflow-y-auto pr-1 space-y-3.5';
-                        contentEl.innerHTML = items.map((entry, idx) => {
-                            const groupsHtml = entry.groups.map((grp, gIdx) => {
-                                const isFirstGroup = gIdx % 2 === 0;
-                                const accentDot = isFirstGroup
-                                    ? 'bg-amber-400 shadow-[0_0_8px_#fbbf24]'
-                                    : 'bg-orange-400 shadow-[0_0_8px_#fb923c]';
-                                const groupCardBorder = isFirstGroup
-                                    ? 'border-amber-500/30 hover:border-amber-400/50'
-                                    : 'border-orange-500/30 hover:border-orange-400/50';
-                                const badgePillClass = isFirstGroup
-                                    ? 'bg-amber-500/20 border-amber-400/45 text-amber-200'
-                                    : 'bg-orange-500/20 border-orange-400/45 text-orange-200';
-
-                                const tasksHtml = grp.tasks.map((taskStr, tIdx) => {
-                                    const parts = taskStr.split(' -- ');
-                                    const formattedTask = parts.length === 2
-                                        ? `<div class="flex flex-wrap items-center gap-1.5 sm:gap-2">
-                                                <span class="inline-flex items-center rounded-lg ${badgePillClass} border px-2 py-0.5 text-[11px] sm:text-xs font-semibold tracking-wide">${parts[0]}</span>
-                                                <span class="text-xs sm:text-sm font-medium text-amber-50/95 leading-snug">${parts[1]}</span>
-                                           </div>`
-                                        : `<span class="text-xs sm:text-sm font-medium text-amber-50/95 leading-snug">${taskStr}</span>`;
-
-                                    return `
-                                        <li style="animation-delay: ${(gIdx * 4 + tIdx) * 35}ms" class="animate-card-pop group flex items-start gap-2.5 rounded-xl bg-gradient-to-r from-white/[0.04] to-transparent hover:from-amber-500/14 hover:to-orange-500/8 border border-amber-500/15 hover:border-amber-400/45 px-3 py-2.5 transition-all duration-200">
-                                            <span class="mt-0.5 w-5 h-5 shrink-0 rounded-lg bg-amber-500/20 border border-amber-400/45 flex items-center justify-center font-mono text-[11px] font-bold text-amber-300 group-hover:scale-105 transition-transform">${tIdx + 1}</span>
-                                            <div class="flex-1 min-w-0">${formattedTask}</div>
-                                        </li>
-                                    `;
-                                }).join('');
-
-                                return `
-                                    <div class="rounded-2xl bg-[#120703]/85 border ${groupCardBorder} p-3.5 sm:p-4 space-y-2.5 transition-colors duration-300">
-                                        <div class="flex items-center justify-between gap-2 pb-2 border-b border-amber-500/15">
-                                            <div class="inline-flex items-center gap-2">
-                                                <span class="w-2.5 h-2.5 rounded-full ${accentDot}"></span>
-                                                <span class="text-sm sm:text-base font-bold tracking-wide text-amber-100">${grp.name}</span>
-                                            </div>
-                                            <span class="rounded-full bg-amber-500/12 border border-amber-500/30 px-2.5 py-0.5 font-mono text-[11px] font-medium text-amber-300/90">${grp.tasks.length} ${translations[currentLang].itemsUnit}</span>
-                                        </div>
-                                        <ul class="space-y-2">
-                                            ${tasksHtml}
-                                        </ul>
+            const hwCal = createCalendarModule({
+                months: [
+                    { year: 2026, month: 11 },
+                    { year: 2026, month: 12 }
+                ],
+                dataMap: homeworkData,
+                monthTitleId: "hwCalendarMonthTitle",
+                prevBtnId: "hwPrevMonthBtn",
+                nextBtnId: "hwNextMonthBtn",
+                monthBtns: ["hwMonth11Btn", "hwMonth12Btn"],
+                weekdaysId: "hwCalendarWeekdays",
+                gridId: "hwCalendarGrid",
+                selectedHeadingId: "hwSelectedDateHeading",
+                countBadgeId: "hwCountBadge",
+                detailContentId: "hwDetailContent",
+                countUnitKey: "hwCountUnit",
+                noDataTitleKey: "noHwTitle",
+                noDataDescKey: "noHwDesc",
+                renderItemsFn: (items, lang) =>
+                    items
+                        .map((item) => {
+                            const groupsHtml = (item.groups || [])
+                                .map(
+                                    (grp) => `
+                                <div class="rounded-xl bg-white/[0.04] border border-amber-500/25 p-3.5 space-y-2">
+                                    <div class="flex items-center gap-2">
+                                        <span class="w-2 h-2 rounded-full bg-amber-400 shadow-[0_0_6px_#fbbf24]"></span>
+                                        <span class="text-xs sm:text-sm font-bold text-amber-200">
+                                            ${lang === "zh" ? grp.groupZh : `${grp.groupZh} (${grp.groupEn})`}
+                                        </span>
                                     </div>
-                                `;
-                            }).join('');
+                                    <ol class="space-y-1.5 text-xs sm:text-sm text-amber-50/95">
+                                        ${grp.tasks
+                                            .map(
+                                                (task, tIdx) => `
+                                            <li class="flex items-start gap-2 leading-relaxed">
+                                                <span class="mt-0.5 font-mono text-xs font-bold text-amber-400/90">${tIdx + 1}.</span>
+                                                <span>${task}</span>
+                                            </li>
+                                        `
+                                            )
+                                            .join("")}
+                                    </ol>
+                                </div>
+                            `
+                                )
+                                .join("");
 
                             return `
-                                <div style="animation-delay: ${idx * 45}ms" class="animate-card-pop relative overflow-hidden rounded-2xl bg-gradient-to-br from-amber-500/20 via-[#261107]/90 to-orange-500/12 border border-amber-400/50 p-4 sm:p-4.5 shadow-[inset_0_1px_0_rgba(254,243,199,0.24),0_6px_24px_rgba(245,158,11,0.18)] space-y-3">
+                                <div class="animate-card-pop rounded-2xl bg-gradient-to-br from-amber-500/18 via-[#120703]/90 to-orange-500/12 border border-amber-400/40 p-4 space-y-3">
                                     <div class="flex items-center justify-between gap-2">
-                                        <div class="flex items-center gap-2.5">
-                                            <span class="w-7 h-7 shrink-0 rounded-xl bg-amber-500/25 border border-amber-400/55 flex items-center justify-center font-mono text-xs font-bold text-amber-300 shadow-[0_0_12px_rgba(245,158,11,0.28)]">0${idx + 1}</span>
-                                            <h4 class="text-base sm:text-lg font-bold tracking-wide text-amber-50">${entry.subject}</h4>
-                                        </div>
-                                        <span class="rounded-full bg-amber-500/15 border border-amber-400/40 px-2.5 py-0.5 font-mono text-[11px] text-amber-200">${entry.groups.length} ${currentLang === 'zh' ? '組別' : 'Groups'}</span>
+                                        <span class="rounded-full bg-amber-500/25 border border-amber-400/50 px-3 py-0.5 text-xs sm:text-sm font-bold text-amber-200">
+                                            ${lang === "zh" ? item.subjectZh : `${item.subjectZh} · ${item.subjectEn}`}
+                                        </span>
                                     </div>
-                                    <div class="space-y-2.5">
-                                        ${groupsHtml}
-                                    </div>
+                                    <div class="space-y-2.5">${groupsHtml}</div>
                                 </div>
                             `;
-                        }).join('');
-                        return;
-                    }
+                        })
+                        .join("")
+            });
 
-                    const hasSchedulePeriods = items.some((entry) => entry && typeof entry === 'object' && typeof entry.period === 'string');
-
-                    if (hasSchedulePeriods) {
-                        badgeEl.classList.remove('hidden');
-                        badgeEl.textContent = `${items.length} ${translations[currentLang].itemsUnit}`;
-
-                        const buildScheduleCard = (entry, idx) => {
-                            const isSubNote = Boolean(entry.note);
-                            const bodyHtml = isSubNote
-                                ? `
-                                    <div class="flex flex-wrap items-center gap-2 pt-1">
-                                        <span class="inline-flex items-center gap-1.5 rounded-lg bg-emerald-500/20 border border-emerald-400/45 px-2.5 py-1 text-xs font-semibold text-emerald-200">
-                                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_#34d399]"></span>
-                                            <span>${currentLang === 'zh' ? '代課安排' : 'Substitute'}</span>
-                                        </span>
-                                        <span class="text-sm sm:text-base font-bold text-amber-50 leading-snug">${entry.note}</span>
-                                    </div>
-                                `
+            const scCal = createCalendarModule({
+                months: [
+                    { year: 2026, month: 11 },
+                    { year: 2026, month: 12 }
+                ],
+                dataMap: scheduleChangeData,
+                monthTitleId: "scCalendarMonthTitle",
+                prevBtnId: "scPrevMonthBtn",
+                nextBtnId: "scNextMonthBtn",
+                monthBtns: ["scMonth11Btn", "scMonth12Btn"],
+                weekdaysId: "scCalendarWeekdays",
+                gridId: "scCalendarGrid",
+                selectedHeadingId: "scSelectedDateHeading",
+                countBadgeId: "scCountBadge",
+                detailContentId: "scDetailContent",
+                countUnitKey: "scCountUnit",
+                noDataTitleKey: "noScTitle",
+                noDataDescKey: "noScDesc",
+                renderItemsFn: (items, lang) =>
+                    items
+                        .map((item) => {
+                            const bodyHtml = item.noteZh
+                                ? `<p class="text-xs sm:text-sm font-medium text-amber-50 leading-relaxed">${lang === "zh" ? item.noteZh : item.noteEn}</p>`
                                 : `
-                                    <div class="flex flex-wrap items-center gap-2 sm:gap-2.5 pt-1">
-                                        <span class="inline-flex items-center rounded-xl bg-white/[0.06] border border-amber-500/25 px-3 py-1 text-xs sm:text-sm font-medium text-amber-200/80 line-through decoration-amber-400/60">
-                                            ${entry.from}
+                                    <div class="flex flex-wrap items-center gap-2 text-xs sm:text-sm font-bold">
+                                        <span class="rounded-xl bg-white/[0.06] border border-white/15 px-3 py-1 text-amber-100/85">
+                                            ${lang === "zh" ? item.fromZh : item.fromEn}
                                         </span>
-                                        <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-amber-500/20 border border-amber-400/45 text-amber-300 shrink-0">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.4">
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                                            </svg>
-                                        </span>
-                                        <span class="inline-flex items-center rounded-xl bg-gradient-to-r from-amber-500/28 to-orange-500/22 border border-amber-400/60 px-3.5 py-1 text-xs sm:text-sm font-bold text-amber-50 shadow-[0_0_14px_rgba(245,158,11,0.22)]">
-                                            ${entry.to}
+                                        <span class="font-mono text-amber-400">→</span>
+                                        <span class="rounded-xl bg-amber-500/20 border border-amber-400/50 px-3 py-1 text-amber-200">
+                                            ${lang === "zh" ? item.toZh : item.toEn}
                                         </span>
                                     </div>
                                 `;
 
                             return `
-                                <div style="animation-delay: ${idx * 45}ms" class="animate-card-pop group relative overflow-hidden rounded-2xl bg-gradient-to-br from-amber-500/20 via-[#261107]/90 to-orange-500/12 hover:from-amber-500/32 hover:via-amber-500/18 hover:to-orange-500/25 border border-amber-400/50 hover:border-amber-300 p-3.5 sm:p-4 flex flex-col justify-between gap-2 shadow-[inset_0_1px_0_rgba(254,243,199,0.22),0_4px_18px_rgba(245,158,11,0.15)] hover:shadow-[inset_0_1px_0_rgba(254,243,199,0.4),0_0_26px_rgba(251,191,36,0.38)] hover:-translate-y-0.5 active:scale-[0.99] transition-all duration-300">
+                                <div class="animate-card-pop rounded-2xl bg-gradient-to-br from-amber-500/15 via-[#120703]/90 to-orange-500/10 border border-amber-400/35 p-4 space-y-2.5">
                                     <div class="flex items-center justify-between gap-2">
-                                        <div class="inline-flex items-center gap-2">
-                                            <span class="w-6 h-6 shrink-0 rounded-lg bg-amber-500/25 border border-amber-400/50 flex items-center justify-center font-mono text-xs font-bold text-amber-300 group-hover:scale-105 transition-transform">0${idx + 1}</span>
-                                            <span class="rounded-full bg-amber-500/20 border border-amber-400/45 px-3 py-0.5 text-xs sm:text-sm font-bold tracking-wide text-amber-200">${entry.period}</span>
-                                        </div>
-                                        <span class="w-2 h-2 shrink-0 rounded-full ${isSubNote ? 'bg-emerald-400 shadow-[0_0_8px_#34d399]' : 'bg-amber-400 shadow-[0_0_8px_#fbbf24]'} group-hover:scale-125 transition-transform"></span>
+                                        <span class="font-mono text-xs sm:text-sm font-bold text-amber-200">
+                                            ${lang === "zh" ? item.periodZh : item.periodEn}
+                                        </span>
+                                        <span class="rounded-full bg-orange-500/20 border border-orange-400/45 px-2.5 py-0.5 text-xs font-bold text-orange-300">
+                                            ${lang === "zh" ? item.typeZh : item.typeEn}
+                                        </span>
                                     </div>
                                     ${bodyHtml}
                                 </div>
                             `;
-                        };
+                        })
+                        .join("")
+            });
 
-                        contentEl.className = 'mt-3 pt-1 flex-1 min-h-0 overflow-y-auto pr-1 space-y-3';
-                        contentEl.innerHTML = items.map((entry, idx) => buildScheduleCard(entry, idx)).join('');
-                        return;
-                    }
-
-                    const hasStructuredTests = items.some((entry) => entry && typeof entry === 'object' && typeof entry.subject === 'string' && typeof entry.title === 'string');
-
-                    if (hasStructuredTests) {
-                        badgeEl.classList.remove('hidden');
-                        badgeEl.textContent = `${items.length} ${translations[currentLang].itemsUnit}`;
-
-                        const formatDetailLine = (lineStr) => {
-                            const colonIdx = lineStr.indexOf('：') !== -1 ? lineStr.indexOf('：') : lineStr.indexOf(': ');
-                            if (colonIdx > 0 && colonIdx <= 12) {
-                                const tag = lineStr.slice(0, colonIdx).trim();
-                                const rest = lineStr.slice(colonIdx + 1).trim();
-                                return `<div class="flex flex-wrap items-center gap-1.5 sm:gap-2">
-                                            <span class="inline-flex items-center rounded-lg bg-amber-500/20 border border-amber-400/45 px-2 py-0.5 text-[11px] sm:text-xs font-semibold tracking-wide text-amber-200">${tag}</span>
-                                            <span class="text-xs sm:text-sm font-medium text-amber-50/95 leading-snug">${rest}</span>
-                                        </div>`;
-                            }
-                            return `<span class="text-xs sm:text-sm font-medium text-amber-50/95 leading-snug">${lineStr}</span>`;
-                        };
-
-                        contentEl.className = 'mt-3 pt-1 flex-1 min-h-0 overflow-y-auto pr-1 space-y-3';
-                        contentEl.innerHTML = items.map((entry, idx) => {
-                            const hasSections = Array.isArray(entry.sections) && entry.sections.length > 0;
-                            const hasDetails = Array.isArray(entry.details) && entry.details.length > 0;
-
-                            let scopeHtml = '';
-                            if (hasSections) {
-                                scopeHtml = `
-                                    <div class="rounded-2xl bg-[#120703]/85 border border-amber-500/25 p-3 sm:p-3.5 space-y-2.5 mt-2">
-                                        <div class="flex items-center justify-between gap-2 pb-1.5 border-b border-amber-500/15">
-                                            <span class="font-mono text-xs font-semibold tracking-wider text-amber-300/90">${currentLang === 'zh' ? '測驗範圍' : 'SYLLABUS SCOPE'}</span>
-                                            <span class="rounded-full bg-amber-500/12 border border-amber-500/30 px-2 py-0.5 font-mono text-[11px] text-amber-300/90">${entry.sections.length} ${currentLang === 'zh' ? '部分' : 'Sections'}</span>
-                                        </div>
-                                        <div class="space-y-2.5">
-                                            ${entry.sections.map((sec, sIdx) => `
-                                                <div class="rounded-xl bg-white/[0.03] border border-amber-500/20 p-2.5 sm:p-3 space-y-1.5">
-                                                    <div class="inline-flex items-center gap-1.5 rounded-lg bg-amber-500/20 border border-amber-400/45 px-2.5 py-0.5 text-xs font-bold tracking-wide text-amber-200">
-                                                        <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
-                                                        <span>${sec.heading}</span>
-                                                    </div>
-                                                    <ul class="space-y-1.5 pl-0.5">
-                                                        ${sec.items.map((subItem, iIdx) => `
-                                                            <li style="animation-delay: ${(idx * 4 + sIdx * 2 + iIdx) * 30}ms" class="animate-card-pop flex items-start gap-2 rounded-lg bg-gradient-to-r from-white/[0.04] to-transparent border border-amber-500/15 px-2.5 py-1.5">
-                                                                <span class="mt-0.5 w-4 h-4 shrink-0 rounded-md bg-amber-500/20 border border-amber-400/40 flex items-center justify-center font-mono text-[10px] font-bold text-amber-300">${iIdx + 1}</span>
-                                                                <span class="text-xs sm:text-sm font-medium text-amber-50/95 leading-snug">${subItem}</span>
-                                                            </li>
-                                                        `).join('')}
-                                                    </ul>
+            const testCal = createCalendarModule({
+                months: [
+                    { year: 2026, month: 11 },
+                    { year: 2026, month: 12 }
+                ],
+                dataMap: testData,
+                monthTitleId: "testCalendarMonthTitle",
+                prevBtnId: "testPrevMonthBtn",
+                nextBtnId: "testNextMonthBtn",
+                monthBtns: ["testMonth11Btn", "testMonth12Btn"],
+                weekdaysId: "testCalendarWeekdays",
+                gridId: "testCalendarGrid",
+                selectedHeadingId: "testSelectedDateHeading",
+                countBadgeId: "testCountBadge",
+                detailContentId: "testDetailContent",
+                countUnitKey: "testCountUnit",
+                noDataTitleKey: "noTestTitle",
+                noDataDescKey: "noTestDesc",
+                renderItemsFn: (items, lang) =>
+                    items
+                        .map((item) => {
+                            const sectionsHtml =
+                                item.sections && item.sections.length > 0
+                                    ? `<div class="space-y-2">${item.sections
+                                          .map(
+                                              (sec) => `
+                                            <div class="rounded-xl bg-white/[0.04] border border-amber-500/20 p-3 space-y-1.5">
+                                                <div class="font-mono text-xs font-bold text-amber-300">
+                                                    ${lang === "zh" ? sec.headingZh : sec.headingEn}
                                                 </div>
-                                            `).join('')}
-                                        </div>
-                                    </div>
-                                `;
-                            } else if (hasDetails) {
-                                scopeHtml = `
-                                    <div class="rounded-2xl bg-[#120703]/85 border border-amber-500/25 p-3 sm:p-3.5 space-y-2 mt-2">
-                                        <div class="flex items-center justify-between gap-2 pb-1.5 border-b border-amber-500/15">
-                                            <span class="font-mono text-xs font-semibold tracking-wider text-amber-300/90">${currentLang === 'zh' ? '測驗範圍' : 'SYLLABUS SCOPE'}</span>
-                                            <span class="rounded-full bg-amber-500/12 border border-amber-500/30 px-2 py-0.5 font-mono text-[11px] text-amber-300/90">${entry.details.length} ${translations[currentLang].itemsUnit}</span>
-                                        </div>
-                                        <ul class="space-y-1.5">
-                                            ${entry.details.map((sub, sIdx) => `
-                                                <li style="animation-delay: ${(idx * 4 + sIdx) * 30}ms" class="animate-card-pop group/sub flex items-start gap-2.5 rounded-xl bg-gradient-to-r from-white/[0.04] to-transparent hover:from-amber-500/14 hover:to-orange-500/8 border border-amber-500/15 hover:border-amber-400/45 px-3 py-2 transition-all duration-200">
-                                                    <span class="mt-0.5 w-5 h-5 shrink-0 rounded-lg bg-amber-500/20 border border-amber-400/45 flex items-center justify-center font-mono text-[11px] font-bold text-amber-300 group-hover/sub:scale-105 transition-transform">${sIdx + 1}</span>
-                                                    <div class="flex-1 min-w-0">${formatDetailLine(sub)}</div>
-                                                </li>
-                                            `).join('')}
-                                        </ul>
-                                    </div>
-                                `;
-                            }
+                                                <ul class="space-y-1 text-xs sm:text-sm text-amber-100/90 list-disc list-inside">
+                                                    ${sec.items.map((line) => `<li>${line}</li>`).join("")}
+                                                </ul>
+                                            </div>
+                                        `
+                                          )
+                                          .join("")}</div>`
+                                    : "";
 
                             return `
-                                <div style="animation-delay: ${idx * 45}ms" class="animate-card-pop group relative overflow-hidden rounded-2xl bg-gradient-to-br from-amber-500/20 via-[#261107]/90 to-orange-500/12 hover:from-amber-500/32 hover:via-amber-500/18 hover:to-orange-500/25 border border-amber-400/50 hover:border-amber-300 p-3.5 sm:p-4 flex flex-col justify-center gap-1.5 shadow-[inset_0_1px_0_rgba(254,243,199,0.22),0_4px_18px_rgba(245,158,11,0.15)] hover:shadow-[inset_0_1px_0_rgba(254,243,199,0.4),0_0_26px_rgba(251,191,36,0.38)] hover:-translate-y-0.5 active:scale-[0.99] transition-all duration-300">
-                                    <div class="flex items-center justify-between gap-2">
-                                        <div class="flex flex-wrap items-center gap-2 min-w-0">
-                                            <span class="w-6 h-6 shrink-0 rounded-lg bg-amber-500/25 border border-amber-400/50 flex items-center justify-center font-mono text-xs font-bold text-amber-300 group-hover:scale-105 transition-transform">0${idx + 1}</span>
-                                            <span class="inline-flex items-center rounded-full bg-amber-500/22 border border-amber-400/50 px-2.5 py-0.5 text-xs font-bold tracking-wide text-amber-200">${entry.subject}</span>
-                                        </div>
-                                        <span class="w-2 h-2 shrink-0 rounded-full bg-amber-400 shadow-[0_0_8px_#fbbf24] group-hover:scale-125 transition-transform"></span>
+                                <div class="animate-card-pop rounded-2xl bg-gradient-to-br from-amber-500/18 via-[#120703]/90 to-orange-500/12 border border-amber-400/40 p-4 space-y-3">
+                                    <div class="flex flex-wrap items-center justify-between gap-2">
+                                        <span class="rounded-full bg-amber-500/25 border border-amber-400/50 px-2.5 py-0.5 text-xs font-bold text-amber-200">
+                                            ${lang === "zh" ? item.subjectZh : item.subjectEn}
+                                        </span>
+                                        <span class="text-sm sm:text-base font-bold text-amber-50">
+                                            ${lang === "zh" ? item.titleZh : item.titleEn}
+                                        </span>
                                     </div>
-                                    <div class="pt-0.5 pl-0.5">
-                                        <span class="block text-base sm:text-lg font-bold text-amber-50 group-hover:text-amber-200 transition-colors leading-snug">${entry.title}</span>
-                                    </div>
-                                    ${scopeHtml}
+                                    ${sectionsHtml}
                                 </div>
                             `;
-                        }).join('');
-                        return;
-                    }
+                        })
+                        .join("")
+            });
 
-                    const hasStructuredActivities = items.some((entry) => entry && typeof entry === 'object' && typeof entry.title === 'string' && !entry.subject);
-
-                    if (hasStructuredActivities) {
-                        badgeEl.classList.remove('hidden');
-                        badgeEl.textContent = `${items.length} ${translations[currentLang].itemsUnit}`;
-
-                        const buildActivityCard = (entry, idx) => {
-                            const hasDetails = Array.isArray(entry.details) && entry.details.length > 0;
-                            const isHoliday = Boolean(entry.isHoliday);
-                            const locationText = entry.location || '';
-
-                            const timeBadgeHtml = entry.time
-                                ? `<span class="inline-flex items-center rounded-full ${isHoliday ? 'bg-emerald-500/20 border-emerald-400/45 text-emerald-200' : 'bg-amber-500/20 border-amber-400/45 text-amber-200'} border px-2.5 py-0.5 font-mono text-xs font-semibold tracking-wide shrink-0">${entry.time}</span>`
-                                : '';
-
-                            const holidayBadgeHtml = isHoliday
-                                ? `<span class="inline-flex items-center gap-1 rounded-full bg-emerald-500/20 border border-emerald-400/45 px-2.5 py-0.5 text-[11px] font-bold text-emerald-200 shrink-0">
-                                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_#34d399]"></span>
-                                        <span>${currentLang === 'zh' ? '假期' : 'Holiday'}</span>
-                                   </span>`
-                                : '';
-
-                            const locationBadgeHtml = locationText
-                                ? `<div class="mt-1 inline-flex items-center gap-1.5 rounded-xl bg-amber-500/15 border border-amber-400/35 px-3 py-1 text-xs sm:text-sm font-semibold text-amber-200">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-amber-300 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                                        </svg>
-                                        <span>${locationText}</span>
-                                   </div>`
-                                : '';
-
-                            const rangeNoteHtml = entry.range
-                                ? `<div class="mt-1.5 inline-flex items-center gap-1.5 rounded-lg bg-white/[0.05] border border-emerald-400/25 px-2.5 py-0.5 font-mono text-[11px] text-emerald-200/85">
-                                        <span>${currentLang === 'zh' ? '假期時段' : 'Holiday Period'}:</span>
-                                        <span>${entry.range}</span>
-                                   </div>`
-                                : '';
-
-                            const subItemsHtml = hasDetails
-                                ? `
-                                    <div class="rounded-2xl bg-[#120703]/85 border border-amber-500/25 p-3 sm:p-3.5 space-y-2 mt-2">
-                                        <div class="flex items-center justify-between gap-2 pb-1.5 border-b border-amber-500/15">
-                                            <span class="font-mono text-xs font-semibold tracking-wider text-amber-300/90">${currentLang === 'zh' ? '需做的事' : 'TO-DO ITEMS'}</span>
-                                            <span class="rounded-full bg-amber-500/12 border border-amber-500/30 px-2 py-0.5 font-mono text-[11px] text-amber-300/90">${entry.details.length} ${translations[currentLang].itemsUnit}</span>
-                                        </div>
-                                        <ul class="space-y-1.5">
-                                            ${entry.details.map((sub, sIdx) => `
-                                                <li style="animation-delay: ${(idx * 4 + sIdx) * 35}ms" class="animate-card-pop group/sub flex items-center gap-2.5 rounded-xl bg-gradient-to-r from-white/[0.04] to-transparent hover:from-amber-500/14 hover:to-orange-500/8 border border-amber-500/15 hover:border-amber-400/45 px-3 py-2 transition-all duration-200">
-                                                    <span class="w-5 h-5 shrink-0 rounded-lg bg-amber-500/20 border border-amber-400/45 flex items-center justify-center font-mono text-[11px] font-bold text-amber-300 group-hover/sub:scale-105 transition-transform">${sIdx + 1}</span>
-                                                    <span class="text-xs sm:text-sm font-medium text-amber-50/95 leading-snug">${sub}</span>
-                                                </li>
-                                            `).join('')}
-                                        </ul>
-                                    </div>
-                                `
-                                : '';
-
-                            const cardToneClass = isHoliday
-                                ? 'from-emerald-500/18 via-[#1e170a]/90 to-amber-500/12 hover:from-emerald-500/28 hover:via-emerald-500/16 hover:to-amber-500/20 border-emerald-400/55 hover:border-emerald-300 shadow-[inset_0_1px_0_rgba(209,250,229,0.2),0_4px_18px_rgba(16,185,129,0.16)] hover:shadow-[inset_0_1px_0_rgba(209,250,229,0.35),0_0_26px_rgba(52,211,153,0.32)]'
-                                : 'from-amber-500/20 via-[#261107]/90 to-orange-500/12 hover:from-amber-500/32 hover:via-amber-500/18 hover:to-orange-500/25 border-amber-400/50 hover:border-amber-300 shadow-[inset_0_1px_0_rgba(254,243,199,0.22),0_4px_18px_rgba(245,158,11,0.15)] hover:shadow-[inset_0_1px_0_rgba(254,243,199,0.4),0_0_26px_rgba(251,191,36,0.38)]';
+            const actCal = createCalendarModule({
+                months: [
+                    { year: 2026, month: 11 },
+                    { year: 2026, month: 12 },
+                    { year: 2027, month: 1 }
+                ],
+                dataMap: activityData,
+                monthTitleId: "actCalendarMonthTitle",
+                prevBtnId: "actPrevMonthBtn",
+                nextBtnId: "actNextMonthBtn",
+                monthBtns: ["actMonth11Btn", "actMonth12Btn", "actMonth01Btn"],
+                weekdaysId: "actCalendarWeekdays",
+                gridId: "actCalendarGrid",
+                selectedHeadingId: "actSelectedDateHeading",
+                countBadgeId: "actCountBadge",
+                detailContentId: "actDetailContent",
+                countUnitKey: "actCountUnit",
+                noDataTitleKey: "noActTitle",
+                noDataDescKey: "noActDesc",
+                renderItemsFn: (items, lang) =>
+                    items
+                        .map((item) => {
+                            const badgeClasses = item.isHoliday
+                                ? "bg-emerald-500/20 border-emerald-400/50 text-emerald-300"
+                                : "bg-amber-500/20 border-amber-400/45 text-amber-200";
+                            const locationHtml = item.locationZh
+                                ? `<div class="text-xs font-medium text-amber-300/90">${lang === "zh" ? item.locationZh : item.locationEn}</div>`
+                                : "";
+                            const bulletsHtml =
+                                item.bullets && item.bullets.length > 0
+                                    ? `<ul class="mt-1.5 space-y-1 text-xs sm:text-sm text-amber-100/90 list-disc list-inside">${item.bullets
+                                          .map((b) => `<li>${b}</li>`)
+                                          .join("")}</ul>`
+                                    : "";
 
                             return `
-                                <div style="animation-delay: ${idx * 45}ms" class="animate-card-pop group relative overflow-hidden rounded-2xl bg-gradient-to-br ${cardToneClass} border p-3.5 sm:p-4 flex flex-col justify-center gap-1.5 hover:-translate-y-0.5 active:scale-[0.99] transition-all duration-300">
-                                    <div class="flex items-center justify-between gap-2">
-                                        <div class="flex flex-wrap items-center gap-2 min-w-0">
-                                            <span class="w-6 h-6 shrink-0 rounded-lg ${isHoliday ? 'bg-emerald-500/25 border-emerald-400/50 text-emerald-300' : 'bg-amber-500/25 border-amber-400/50 text-amber-300'} border flex items-center justify-center font-mono text-xs font-bold group-hover:scale-105 transition-transform">0${idx + 1}</span>
-                                            ${timeBadgeHtml}
-                                            ${holidayBadgeHtml}
-                                        </div>
-                                        <span class="w-2 h-2 shrink-0 rounded-full ${isHoliday ? 'bg-emerald-400 shadow-[0_0_8px_#34d399]' : 'bg-amber-400 shadow-[0_0_8px_#fbbf24]'} group-hover:scale-125 transition-transform"></span>
+                                <div class="animate-card-pop rounded-2xl bg-gradient-to-br from-amber-500/15 via-[#120703]/90 to-orange-500/10 border border-amber-400/35 p-4 space-y-2">
+                                    <div class="flex flex-wrap items-center justify-between gap-2">
+                                        <span class="rounded-full border px-2.5 py-0.5 font-mono text-xs font-semibold ${badgeClasses}">
+                                            ${lang === "zh" ? item.timeZh : item.timeEn}
+                                        </span>
+                                        ${locationHtml}
                                     </div>
-                                    <div class="pt-0.5 pl-0.5">
-                                        <span class="block text-base sm:text-lg font-bold text-amber-50 group-hover:text-amber-200 transition-colors leading-snug">${entry.title}</span>
-                                        ${locationBadgeHtml}
-                                    </div>
-                                    ${rangeNoteHtml ? `<div class="pl-0.5">${rangeNoteHtml}</div>` : ''}
-                                    ${subItemsHtml}
+                                    <h4 class="text-sm sm:text-base font-bold text-amber-50">
+                                        ${lang === "zh" ? item.titleZh : item.titleEn}
+                                    </h4>
+                                    ${bulletsHtml}
                                 </div>
                             `;
-                        };
+                        })
+                        .join("")
+            });
 
-                        contentEl.className = 'mt-3 pt-1 flex-1 min-h-0 overflow-y-auto pr-1 space-y-3';
-                        contentEl.innerHTML = items.map((entry, idx) => buildActivityCard(entry, idx)).join('');
-                        return;
-                    }
+            // 5. Render Duty Roster (06. 值日)
+            function renderDutyRoster() {
+                const headerEl = document.getElementById("dutyDateHeader");
+                const gridEl = document.getElementById("dutyRolesGrid");
+                const reminderEl = document.getElementById("dutySpecialReminderBox");
 
-                    badgeEl.classList.remove('hidden');
-                    badgeEl.textContent = `${items.length} ${translations[currentLang].itemsUnit}`;
-
-                    const itemCardClass = 'animate-card-pop group relative overflow-hidden rounded-2xl bg-gradient-to-br from-amber-500/20 via-[#261107]/90 to-orange-500/12 hover:from-amber-500/32 hover:via-amber-500/18 hover:to-orange-500/25 border border-amber-400/50 hover:border-amber-300 px-4 py-2.5 flex items-center justify-between gap-3 shadow-[inset_0_1px_0_rgba(254,243,199,0.22),0_4px_18px_rgba(245,158,11,0.15)] hover:shadow-[inset_0_1px_0_rgba(254,243,199,0.4),0_0_26px_rgba(251,191,36,0.38)] hover:-translate-y-0.5 active:scale-[0.99] transition-all duration-300';
-
-                    // 5-row slot layout when <= 5 items so activity boxes keep clean proportions and interactive hover glow
-                    if (items.length <= 5) {
-                        contentEl.className = 'mt-3 pt-1 flex-1 min-h-0 overflow-y-auto pr-1 grid grid-cols-1 grid-rows-5 gap-2.5';
-                        let html = '';
-                        for (let i = 0; i < 5; i++) {
-                            if (i < items.length) {
-                                html += `
-                                    <div style="animation-delay: ${i * 45}ms" class="${itemCardClass}">
-                                        <div class="flex items-center gap-3 min-w-0">
-                                            <span class="w-7 h-7 shrink-0 rounded-xl bg-amber-500/20 border border-amber-400/45 flex items-center justify-center font-mono text-xs font-bold text-amber-300 shadow-[0_0_10px_rgba(245,158,11,0.2)] group-hover:scale-110 transition-transform">0${i + 1}</span>
-                                            <span class="text-sm sm:text-base font-semibold text-amber-50 group-hover:text-amber-200 transition-colors">${items[i]}</span>
-                                        </div>
-                                        <span class="w-2 h-2 shrink-0 rounded-full bg-amber-400 shadow-[0_0_8px_#fbbf24] group-hover:scale-125 group-hover:bg-amber-300 transition-all"></span>
-                                    </div>
-                                `;
-                            } else {
-                                html += `<div class="rounded-2xl border border-transparent"></div>`;
-                            }
-                        }
-                        contentEl.innerHTML = html;
-                    } else {
-                        contentEl.className = 'mt-3 pt-1 flex-1 min-h-0 overflow-y-auto pr-1 space-y-2.5';
-                        contentEl.innerHTML = items.map((item, idx) => `
-                            <div style="animation-delay: ${Math.min(idx, 10) * 40}ms" class="${itemCardClass}">
-                                <div class="flex items-center gap-3 min-w-0">
-                                    <span class="w-7 h-7 shrink-0 rounded-xl bg-amber-500/20 border border-amber-400/45 flex items-center justify-center font-mono text-xs font-bold text-amber-300 shadow-[0_0_10px_rgba(245,158,11,0.2)] group-hover:scale-110 transition-transform">0${idx + 1}</span>
-                                    <span class="text-sm sm:text-base font-semibold text-amber-50 group-hover:text-amber-200 transition-colors">${item}</span>
-                                </div>
-                                <span class="w-2 h-2 shrink-0 rounded-full bg-amber-400 shadow-[0_0_8px_#fbbf24] group-hover:scale-125 group-hover:bg-amber-300 transition-all"></span>
-                            </div>
-                        `).join('');
-                    }
-                }
-
-                function renderDutyRoster() {
-                    const headerEl = document.getElementById('dutyDateHeader');
-                    const gridEl = document.getElementById('dutyRolesGrid');
-                    const specialEl = document.getElementById('dutySpecialReminderBox');
-                    if (!headerEl || !gridEl || !specialEl) return;
-
-                    const t = translations[currentLang];
-
+                if (headerEl) {
                     headerEl.innerHTML = `
                         <div>
-                            <span class="block font-mono text-xs uppercase tracking-widest text-amber-400/80">${t.dutyDateTitle}</span>
-                            <h3 class="text-xl sm:text-2xl lg:text-3xl font-bold text-amber-50 mt-1">${t.dutyDateDisplay}</h3>
+                            <span class="block font-mono text-xs uppercase tracking-wider text-amber-400/80">${translations[currentLang].dutyHeaderLabel}</span>
+                            <h3 class="text-lg sm:text-2xl font-bold text-amber-50 mt-1">${translations[currentLang].dutyDateValue}</h3>
                         </div>
-                        <span class="rounded-full bg-amber-500/15 border border-amber-400/40 px-3.5 py-1 font-mono text-xs text-amber-300">S2F DUTY</span>
+                        <span class="rounded-full bg-emerald-500/15 border border-emerald-400/40 px-3.5 py-1 font-mono text-xs text-emerald-300">
+                            ACTIVE
+                        </span>
                     `;
+                }
 
-                    const roles = [
-                        {
-                            label: t.dutySweep,
-                            person: '鍾鎧汶 (39)',
-                            note: '',
-                            code: '01'
-                        },
-                        {
-                            label: t.dutyConsole,
-                            person: '梁旭言 (17)',
-                            note: '',
-                            code: '02'
-                        },
-                        {
-                            label: t.dutyBlackboard,
-                            person: '陳昊廷 (21)',
-                            note: '原由莫梓明 (18)做, 但因公假, 先由陳昊廷 (21)做',
-                            code: '03'
-                        },
-                        {
-                            label: t.dutyTrash,
-                            person: '陳澤楷 (23)',
-                            note: '原由許思然 (19)做, 但因公假, 同時陳樂妍 (22)請假, 先由陳澤楷 (23)做',
-                            code: '04'
-                        }
-                    ];
+                if (gridEl) {
+                    gridEl.innerHTML = dutyRosterRoles
+                        .map((role, idx) => {
+                            const noteText = currentLang === "zh" ? role.noteZh : role.noteEn;
+                            const noteHtml = noteText
+                                ? `<p class="rounded-xl bg-amber-500/10 border border-amber-500/20 px-3 py-2 text-xs sm:text-sm text-amber-200/85 leading-relaxed">${noteText}</p>`
+                                : "";
 
-                    gridEl.innerHTML = roles.map((r) => `
-                        <div class="rounded-2xl bg-[#120703]/80 border border-amber-500/30 p-4 sm:p-5 flex flex-col justify-between gap-2">
-                            <div class="flex items-center justify-between">
-                                <span class="text-sm sm:text-base font-semibold text-amber-300/90">${r.label}</span>
-                                <span class="font-mono text-xs text-amber-400/65">${r.code}</span>
+                            return `
+                        <div class="rounded-2xl bg-[#120703]/80 border border-amber-500/25 p-4 sm:p-5 flex flex-col justify-between gap-3">
+                            <div class="flex items-center justify-between gap-2">
+                                <span class="text-sm sm:text-base font-bold text-amber-200">${currentLang === "zh" ? role.roleZh : role.roleEn}</span>
+                                <span class="font-mono text-xs text-amber-400/70">0${idx + 1}</span>
                             </div>
+                            <div class="space-y-2.5">
+                                <div class="flex flex-wrap gap-2">
+                                    ${role.members
+                                        .map(
+                                            (m) => `
+                                        <span class="rounded-xl bg-amber-500/15 border border-amber-400/35 px-3 py-1.5 text-xs sm:text-sm font-medium text-amber-50">
+                                            ${m}
+                                        </span>
+                                    `
+                                        )
+                                        .join("")}
+                                </div>
+                                ${noteHtml}
+                            </div>
+                        </div>
+                    `;
+                        })
+                        .join("");
+                }
+
+                if (reminderEl) {
+                    reminderEl.innerHTML = `
+                        <div class="flex items-start gap-3">
+                            <span class="mt-0.5 w-6 h-6 shrink-0 rounded-full bg-amber-500/25 border border-amber-400/60 flex items-center justify-center text-amber-300 font-bold text-xs">!</span>
                             <div>
-                                <div class="text-xl sm:text-2xl lg:text-3xl font-bold text-amber-50">${r.person}</div>
-                                ${r.note ? `<p class="text-xs sm:text-sm text-amber-200/80 mt-1.5 leading-relaxed">${r.note}</p>` : ''}
+                                <h4 class="text-sm sm:text-base font-bold text-amber-200">${translations[currentLang].dutyReminderTitle}</h4>
+                                <p class="text-xs sm:text-sm text-amber-100/90 mt-1 leading-relaxed">${translations[currentLang].dutyReminderBody}</p>
                             </div>
-                        </div>
-                    `).join('');
-
-                    specialEl.innerHTML = `
-                        <div class="flex flex-wrap items-center justify-between gap-2">
-                            <span class="inline-flex items-center gap-2 text-sm sm:text-base font-bold text-amber-300">
-                                <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
-                                ${t.dutySpecialTitle}
-                            </span>
-                            <span class="text-base sm:text-xl font-bold text-amber-50">${t.dutySpecialDetail}</span>
                         </div>
                     `;
                 }
+            }
 
-                // ==========================================
-                // 9. Calendar Refresh Helpers
-                // ==========================================
-                function refreshLeaveCalendar() {
-                    renderModuleCalendar({
-                        monthObj: availableMonths[leaveMonthIdx],
-                        monthIdx: leaveMonthIdx,
-                        monthsList: availableMonths,
-                        selectedDate: selectedLeaveDate,
-                        dataMap: officialLeaveData,
-                        titleEl: document.getElementById('leaveCalendarMonthTitle'),
-                        prevBtn: document.getElementById('leavePrevMonthBtn'),
-                        nextBtn: document.getElementById('leaveNextMonthBtn'),
-                        monthBtns: [document.getElementById('leaveMonth11Btn'), document.getElementById('leaveMonth12Btn')],
-                        gridEl: document.getElementById('leaveCalendarGrid'),
-                        onSelectDate: (dateStr) => {
-                            selectedLeaveDate = dateStr;
-                            refreshLeaveCalendar();
-                            renderLeaveDetails(dateStr);
-                        }
-                    });
-                }
+            renderDutyRoster();
 
-                function refreshHwCalendar() {
-                    renderModuleCalendar({
-                        monthObj: availableMonths[hwMonthIdx],
-                        monthIdx: hwMonthIdx,
-                        monthsList: availableMonths,
-                        selectedDate: selectedHwDate,
-                        dataMap: homeworkData,
-                        titleEl: document.getElementById('hwCalendarMonthTitle'),
-                        prevBtn: document.getElementById('hwPrevMonthBtn'),
-                        nextBtn: document.getElementById('hwNextMonthBtn'),
-                        monthBtns: [document.getElementById('hwMonth11Btn'), document.getElementById('hwMonth12Btn')],
-                        gridEl: document.getElementById('hwCalendarGrid'),
-                        onSelectDate: (dateStr) => {
-                            selectedHwDate = dateStr;
-                            refreshHwCalendar();
-                            renderGenericItemDetails(dateStr, homeworkData, 'hwSelectedDateHeading', 'hwCountBadge', 'hwDetailContent', 'noHwMsg');
-                        }
-                    });
-                }
+            // 6. Bilingual Language Switcher
+            const langZhBtn = document.getElementById("langZhBtn");
+            const langEnBtn = document.getElementById("langEnBtn");
 
-                function refreshScCalendar() {
-                    renderModuleCalendar({
-                        monthObj: availableMonths[scMonthIdx],
-                        monthIdx: scMonthIdx,
-                        monthsList: availableMonths,
-                        selectedDate: selectedScDate,
-                        dataMap: scheduleChangeData,
-                        titleEl: document.getElementById('scCalendarMonthTitle'),
-                        prevBtn: document.getElementById('scPrevMonthBtn'),
-                        nextBtn: document.getElementById('scNextMonthBtn'),
-                        monthBtns: [document.getElementById('scMonth11Btn'), document.getElementById('scMonth12Btn')],
-                        gridEl: document.getElementById('scCalendarGrid'),
-                        onSelectDate: (dateStr) => {
-                            selectedScDate = dateStr;
-                            refreshScCalendar();
-                            renderGenericItemDetails(dateStr, scheduleChangeData, 'scSelectedDateHeading', 'scCountBadge', 'scDetailContent', 'noScMsg');
-                        }
-                    });
-                }
+            function applyLanguage(lang) {
+                currentLang = lang;
+                document.documentElement.lang = lang === "zh" ? "zh-Hant" : "en";
 
-                function refreshTestCalendar() {
-                    renderModuleCalendar({
-                        monthObj: availableMonths[testMonthIdx],
-                        monthIdx: testMonthIdx,
-                        monthsList: availableMonths,
-                        selectedDate: selectedTestDate,
-                        dataMap: testData,
-                        titleEl: document.getElementById('testCalendarMonthTitle'),
-                        prevBtn: document.getElementById('testPrevMonthBtn'),
-                        nextBtn: document.getElementById('testNextMonthBtn'),
-                        monthBtns: [document.getElementById('testMonth11Btn'), document.getElementById('testMonth12Btn')],
-                        gridEl: document.getElementById('testCalendarGrid'),
-                        onSelectDate: (dateStr) => {
-                            selectedTestDate = dateStr;
-                            refreshTestCalendar();
-                            renderGenericItemDetails(dateStr, testData, 'testSelectedDateHeading', 'testCountBadge', 'testDetailContent', 'noTestMsg');
-                        }
-                    });
-                }
-
-                function refreshActCalendar() {
-                    renderModuleCalendar({
-                        monthObj: actAvailableMonths[actMonthIdx],
-                        monthIdx: actMonthIdx,
-                        monthsList: actAvailableMonths,
-                        selectedDate: selectedActDate,
-                        dataMap: activityData,
-                        titleEl: document.getElementById('actCalendarMonthTitle'),
-                        prevBtn: document.getElementById('actPrevMonthBtn'),
-                        nextBtn: document.getElementById('actNextMonthBtn'),
-                        monthBtns: [
-                            document.getElementById('actMonth11Btn'),
-                            document.getElementById('actMonth12Btn'),
-                            document.getElementById('actMonth01Btn')
-                        ],
-                        gridEl: document.getElementById('actCalendarGrid'),
-                        onSelectDate: (dateStr) => {
-                            selectedActDate = dateStr;
-                            refreshActCalendar();
-                            renderGenericItemDetails(dateStr, activityData, 'actSelectedDateHeading', 'actCountBadge', 'actDetailContent', 'noActMsg');
-                        }
-                    });
-                }
-
-                function refreshAllViews() {
-                    refreshLeaveCalendar();
-                    renderLeaveDetails(selectedLeaveDate);
-                    refreshHwCalendar();
-                    renderGenericItemDetails(selectedHwDate, homeworkData, 'hwSelectedDateHeading', 'hwCountBadge', 'hwDetailContent', 'noHwMsg');
-                    refreshScCalendar();
-                    renderGenericItemDetails(selectedScDate, scheduleChangeData, 'scSelectedDateHeading', 'scCountBadge', 'scDetailContent', 'noScMsg');
-                    refreshTestCalendar();
-                    renderGenericItemDetails(selectedTestDate, testData, 'testSelectedDateHeading', 'testCountBadge', 'testDetailContent', 'noTestMsg');
-                    refreshActCalendar();
-                    renderGenericItemDetails(selectedActDate, activityData, 'actSelectedDateHeading', 'actCountBadge', 'actDetailContent', 'noActMsg');
-                    renderDutyRoster();
-                }
-
-                // ==========================================
-                // 10. Language Switcher
-                // ==========================================
-                function applyLanguage(lang) {
-                    currentLang = lang;
-                    const t = translations[lang];
-
-                    document.querySelectorAll('[data-i18n]').forEach((el) => {
-                        const key = el.getAttribute('data-i18n');
-                        if (t[key]) {
-                            el.textContent = t[key];
-                        }
-                    });
-
-                    document.querySelectorAll('[data-i18n-placeholder]').forEach((el) => {
-                        const key = el.getAttribute('data-i18n-placeholder');
-                        if (t[key]) {
-                            el.setAttribute('placeholder', t[key]);
-                        }
-                    });
-
-                    const weekdayLabels = lang === 'zh'
-                        ? ['日', '一', '二', '三', '四', '五', '六']
-                        : ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
-
-                    ['calendarWeekdays', 'hwCalendarWeekdays', 'scCalendarWeekdays', 'testCalendarWeekdays', 'actCalendarWeekdays'].forEach((id) => {
-                        const container = document.getElementById(id);
-                        if (container) {
-                            container.innerHTML = weekdayLabels.map((d) => `<span>${d}</span>`).join('');
-                        }
-                    });
-
-                    const zhBtn = document.getElementById('langZhBtn');
-                    const enBtn = document.getElementById('langEnBtn');
-                    if (zhBtn && enBtn) {
-                        if (lang === 'zh') {
-                            zhBtn.className = 'rounded-full px-3.5 py-1.5 text-xs sm:text-sm font-medium transition-all cursor-pointer bg-amber-500 text-stone-950 font-bold shadow-[0_0_12px_rgba(245,158,11,0.35)]';
-                            enBtn.className = 'rounded-full px-3.5 py-1.5 text-xs sm:text-sm font-medium transition-all cursor-pointer text-amber-200/80 hover:text-amber-50';
-                        } else {
-                            enBtn.className = 'rounded-full px-3.5 py-1.5 text-xs sm:text-sm font-medium transition-all cursor-pointer bg-amber-500 text-stone-950 font-bold shadow-[0_0_12px_rgba(245,158,11,0.35)]';
-                            zhBtn.className = 'rounded-full px-3.5 py-1.5 text-xs sm:text-sm font-medium transition-all cursor-pointer text-amber-200/80 hover:text-amber-50';
-                        }
+                if (langZhBtn && langEnBtn) {
+                    if (lang === "zh") {
+                        langZhBtn.className = "rounded-full px-3.5 py-1.5 text-xs sm:text-sm font-medium transition-all cursor-pointer bg-amber-500 text-stone-950 font-bold shadow-[0_0_12px_rgba(245,158,11,0.35)]";
+                        langEnBtn.className = "rounded-full px-3.5 py-1.5 text-xs sm:text-sm font-medium transition-all cursor-pointer text-amber-200/80 hover:text-amber-50";
+                    } else {
+                        langEnBtn.className = "rounded-full px-3.5 py-1.5 text-xs sm:text-sm font-medium transition-all cursor-pointer bg-amber-500 text-stone-950 font-bold shadow-[0_0_12px_rgba(245,158,11,0.35)]";
+                        langZhBtn.className = "rounded-full px-3.5 py-1.5 text-xs sm:text-sm font-medium transition-all cursor-pointer text-amber-200/80 hover:text-amber-50";
                     }
-
-                    updateMacauTimeAndStatus();
-                    refreshAllViews();
                 }
 
-                document.getElementById('langZhBtn')?.addEventListener('click', () => applyLanguage('zh'));
-                document.getElementById('langEnBtn')?.addEventListener('click', () => applyLanguage('en'));
+                document.querySelectorAll("[data-i18n]").forEach((el) => {
+                    const key = el.getAttribute("data-i18n");
+                    if (translations[lang][key]) {
+                        el.textContent = translations[lang][key];
+                    }
+                });
 
-                // Update Log Modal Handlers
-                const updateLogModal = document.getElementById('updateLogModal');
-                const openUpdateLog = () => {
-                    if (!updateLogModal) return;
-                    updateLogModal.classList.remove('hidden');
-                    updateLogModal.classList.add('flex');
-                };
-                const closeUpdateLog = () => {
-                    if (!updateLogModal) return;
-                    updateLogModal.classList.add('hidden');
-                    updateLogModal.classList.remove('flex');
-                };
+                document.querySelectorAll("[data-i18n-placeholder]").forEach((el) => {
+                    const key = el.getAttribute("data-i18n-placeholder");
+                    if (translations[lang][key]) {
+                        el.setAttribute("placeholder", translations[lang][key]);
+                    }
+                });
 
-                document.getElementById('updateLogBtn')?.addEventListener('click', openUpdateLog);
-                document.getElementById('closeUpdateLogBtn')?.addEventListener('click', closeUpdateLog);
-                updateLogModal?.addEventListener('click', (e) => {
+                updateMacauTimeAndStatus();
+                leaveCal.refresh();
+                hwCal.refresh();
+                scCal.refresh();
+                testCal.refresh();
+                actCal.refresh();
+                renderDutyRoster();
+            }
+
+            if (langZhBtn) langZhBtn.addEventListener("click", () => applyLanguage("zh"));
+            if (langEnBtn) langEnBtn.addEventListener("click", () => applyLanguage("en"));
+
+            // 7. Update Log Modal Controls
+            const updateLogBtn = document.getElementById("updateLogBtn");
+            const updateLogModal = document.getElementById("updateLogModal");
+            const closeUpdateLogBtn = document.getElementById("closeUpdateLogBtn");
+
+            function openUpdateLog() {
+                if (!updateLogModal) return;
+                updateLogModal.classList.remove("hidden");
+                updateLogModal.classList.add("flex");
+            }
+
+            function closeUpdateLog() {
+                if (!updateLogModal) return;
+                updateLogModal.classList.add("hidden");
+                updateLogModal.classList.remove("flex");
+            }
+
+            if (updateLogBtn) updateLogBtn.addEventListener("click", openUpdateLog);
+            if (closeUpdateLogBtn) closeUpdateLogBtn.addEventListener("click", closeUpdateLog);
+            if (updateLogModal) {
+                updateLogModal.addEventListener("click", (e) => {
                     if (e.target === updateLogModal) closeUpdateLog();
                 });
-                document.addEventListener('keydown', (e) => {
-                    if (e.key === 'Escape' && updateLogModal && !updateLogModal.classList.contains('hidden')) {
-                        closeUpdateLog();
+            }
+            document.addEventListener("keydown", (e) => {
+                if (e.key === "Escape") closeUpdateLog();
+            });
+
+            // 8. View Navigation & Transitions
+            const views = {
+                login: document.getElementById("loginView"),
+                dashboard: document.getElementById("dashboardView"),
+                "公假名單": document.getElementById("officialLeaveView"),
+                "功課": document.getElementById("homeworkView"),
+                "調課/代課情況": document.getElementById("scheduleChangeView"),
+                "測驗": document.getElementById("testView"),
+                "學校活動": document.getElementById("activityView"),
+                "值日": document.getElementById("dutyView")
+            };
+
+            const dashboardUserControls = document.getElementById("dashboardUserControls");
+            const loggedInUserBadge = document.getElementById("loggedInUserBadge");
+            const logoutBtn = document.getElementById("logoutBtn");
+
+            function switchView(targetKey) {
+                Object.entries(views).forEach(([key, el]) => {
+                    if (!el) return;
+                    if (key === targetKey) {
+                        el.classList.remove("hidden");
+                        el.classList.add("flex");
+                        requestAnimationFrame(() => {
+                            el.classList.remove("opacity-0", "translate-y-4");
+                        });
+                    } else {
+                        el.classList.add("hidden", "opacity-0", "translate-y-4");
+                        el.classList.remove("flex");
                     }
                 });
 
-                // ==========================================
-                // 11. Macau Live Clock & School Status Updater
-                // ==========================================
-                function updateMacauTimeAndStatus() {
-                    const macau = getMacauNow();
-                    const y = macau.getFullYear();
-                    const m = String(macau.getMonth() + 1).padStart(2, '0');
-                    const d = String(macau.getDate()).padStart(2, '0');
-                    const hh = String(macau.getHours()).padStart(2, '0');
-                    const mm = String(macau.getMinutes()).padStart(2, '0');
-                    const ss = String(macau.getSeconds()).padStart(2, '0');
-
-                    const dateEl = document.getElementById('macauDateText');
-                    const clockEl = document.getElementById('macauClockText');
-                    const dotEl = document.getElementById('schoolStatusDot');
-                    const statusEl = document.getElementById('schoolStatusText');
-
-                    if (dateEl) {
-                        dateEl.textContent = currentLang === 'zh'
-                            ? `${y}年${m}月${d}日`
-                            : `${y}-${m}-${d}`;
-                    }
-                    if (clockEl) {
-                        clockEl.textContent = `${hh}:${mm}:${ss}`;
-                    }
-
-                    const dayOfWeek = macau.getDay();
-                    const mins = macau.getHours() * 60 + macau.getMinutes();
-                    let statusKey = 'statusAfterSchool';
-                    let dotClass = 'w-2.5 h-2.5 rounded-full bg-gray-400 transition-all duration-300';
-
-                    if (dayOfWeek >= 1 && dayOfWeek <= 5) {
-                        if ((mins >= 605 && mins < 625) || (mins >= 705 && mins < 715) || (mins >= 910 && mins < 920)) {
-                            statusKey = 'statusRecess';
-                            dotClass = 'w-2.5 h-2.5 rounded-full bg-amber-400 shadow-[0_0_8px_#fbbf24] transition-all duration-300';
-                        } else if (mins >= 745 && mins < 835) {
-                            statusKey = 'statusLunch';
-                            dotClass = 'w-2.5 h-2.5 rounded-full bg-orange-400 shadow-[0_0_8px_#fb923c] transition-all duration-300';
-                        } else if (mins >= 480 && mins < 960) {
-                            statusKey = 'statusInClass';
-                            dotClass = 'w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399] transition-all duration-300';
-                        }
-                    }
-
-                    if (dotEl) dotEl.className = dotClass;
-                    if (statusEl) statusEl.textContent = translations[currentLang][statusKey];
-
-                    const latestTodayStr = `${y}-${m}-${d}`;
-                    if (latestTodayStr !== currentMacauTodayStr) {
-                        currentMacauTodayStr = latestTodayStr;
-                        refreshAllViews();
+                if (dashboardUserControls) {
+                    if (targetKey === "login") {
+                        dashboardUserControls.classList.add("hidden");
+                        dashboardUserControls.classList.remove("flex");
+                    } else {
+                        dashboardUserControls.classList.remove("hidden");
+                        dashboardUserControls.classList.add("flex");
                     }
                 }
+            }
 
-                setInterval(updateMacauTimeAndStatus, 1000);
+            document.querySelectorAll(".category-btn").forEach((btn) => {
+                btn.addEventListener("click", () => {
+                    if (!isAuthenticated) return;
+                    const cat = btn.getAttribute("data-category");
+                    if (views[cat]) switchView(cat);
+                });
+            });
 
-                // ==========================================
-                // 12. Firebase Login & Logout Handlers
-                // ==========================================
-                const dashboardUserControls = document.getElementById('dashboardUserControls');
-                const loginForm = document.getElementById('loginForm');
-                const loginCard = document.getElementById('loginCard');
-                const loginErrorBox = document.getElementById('loginErrorBox');
-                const loginErrorText = document.getElementById('loginErrorText');
-                const loginSubmitBtn = document.getElementById('loginSubmitBtn');
-                const loggedInUserBadge = document.getElementById('loggedInUserBadge');
+            [
+                "backToDashboardBtn",
+                "backFromHwBtn",
+                "backFromScBtn",
+                "backFromTestBtn",
+                "backFromActBtn",
+                "backFromDutyBtn"
+            ].forEach((btnId) => {
+                const btn = document.getElementById(btnId);
+                if (btn) {
+                    btn.addEventListener("click", () => {
+                        if (isAuthenticated) switchView("dashboard");
+                    });
+                }
+            });
 
-                // Prevent browser autofill auto-submit or page-cache restore on refresh;
-                // require an explicit trusted press on the Login button even when fields are autofilled.
-                let explicitLoginButtonPress = false;
-                const markTrustedLoginPress = (e) => {
-                    if (e && e.isTrusted) {
-                        explicitLoginButtonPress = true;
-                    }
-                };
-                loginSubmitBtn?.addEventListener('pointerdown', markTrustedLoginPress);
-                loginSubmitBtn?.addEventListener('click', markTrustedLoginPress);
-                loginSubmitBtn?.addEventListener('keydown', (e) => {
-                    if (e && e.isTrusted && (e.key === 'Enter' || e.key === ' ')) {
-                        explicitLoginButtonPress = true;
+            // 9. Firebase & Firestore Authentication (No Auto-Login on Load/Refresh)
+            let firebaseAuth = null;
+            let firestoreDb = null;
+            const appId = typeof __app_id !== "undefined" ? __app_id : "default-app-id";
+
+            try {
+                const rawConfig =
+                    typeof __firebase_config !== "undefined" && __firebase_config
+                        ? JSON.parse(__firebase_config)
+                        : FALLBACK_FIREBASE_CONFIG;
+
+                const fbApp = initializeApp(rawConfig);
+                firebaseAuth = getAuth(fbApp);
+                firestoreDb = getFirestore(fbApp);
+
+                setPersistence(firebaseAuth, inMemoryPersistence)
+                    .then(() => signOut(firebaseAuth))
+                    .catch(() => {});
+            } catch (fbErr) {
+                console.warn("Firebase init notice:", fbErr);
+            }
+
+            function resetToLoginScreen() {
+                isAuthenticated = false;
+                explicitSubmitAttempted = false;
+                if (firebaseAuth) {
+                    signOut(firebaseAuth).catch(() => {});
+                }
+                switchView("login");
+            }
+
+            // Ensure page refresh or bfcache restore never skips login screen
+            window.addEventListener("pageshow", () => {
+                resetToLoginScreen();
+            });
+
+            if (logoutBtn) {
+                logoutBtn.addEventListener("click", () => {
+                    const pwdInput = document.getElementById("passwordInput");
+                    if (pwdInput) pwdInput.value = "";
+                    resetToLoginScreen();
+                });
+            }
+
+            const loginForm = document.getElementById("loginForm");
+            const loginCard = document.getElementById("loginCard");
+            const loginSubmitBtn = document.getElementById("loginSubmitBtn");
+            const loginErrorBox = document.getElementById("loginErrorBox");
+            const loginErrorText = document.getElementById("loginErrorText");
+            const usernameInput = document.getElementById("usernameInput");
+            const passwordInput = document.getElementById("passwordInput");
+
+            function showLoginError(msgKey) {
+                if (loginErrorText) {
+                    loginErrorText.textContent = translations[currentLang][msgKey] || translations[currentLang].loginError;
+                }
+                if (loginErrorBox) loginErrorBox.classList.remove("hidden");
+                if (loginCard) {
+                    loginCard.classList.remove("animate-shake");
+                    void loginCard.offsetWidth;
+                    loginCard.classList.add("animate-shake");
+                }
+            }
+
+            // Guard so autofill/password-managers cannot auto-submit without user action
+            if (loginSubmitBtn) {
+                loginSubmitBtn.addEventListener("pointerdown", () => {
+                    explicitSubmitAttempted = true;
+                });
+                loginSubmitBtn.addEventListener("keydown", (e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                        explicitSubmitAttempted = true;
                     }
                 });
+            }
 
-                window.addEventListener('pageshow', () => {
-                    isLoggedIn = false;
-                    explicitLoginButtonPress = false;
-                    if (firebaseAuth) {
-                        signOut(firebaseAuth).catch(() => {});
-                    }
-                    if (dashboardUserControls) {
-                        dashboardUserControls.classList.add('hidden');
-                        dashboardUserControls.classList.remove('flex');
-                    }
-                    switchView('login');
-                });
-
-                loginForm?.addEventListener('submit', async (e) => {
+            if (loginForm) {
+                loginForm.addEventListener("submit", async (e) => {
                     e.preventDefault();
-                    const isManualButtonSubmit = Boolean(
-                        e.isTrusted &&
-                        (explicitLoginButtonPress || (e.submitter && e.submitter.id === 'loginSubmitBtn'))
-                    );
-                    explicitLoginButtonPress = false;
-                    if (!isManualButtonSubmit) {
+
+                    // Block untrusted/autofill auto-submissions
+                    if (!e.isTrusted && !explicitSubmitAttempted) {
+                        return;
+                    }
+                    explicitSubmitAttempted = false;
+
+                    const enteredUser = (usernameInput ? usernameInput.value : "").trim();
+                    const enteredPass = (passwordInput ? passwordInput.value : "").trim();
+
+                    if (!enteredUser || !enteredPass) {
+                        showLoginError("loginEmptyError");
                         return;
                     }
 
-                    const rawUsername = (document.getElementById('usernameInput')?.value || '').trim();
-                    const password = document.getElementById('passwordInput')?.value || '';
-
-                    const showLoginError = (msgKey) => {
-                        if (loginErrorText) loginErrorText.textContent = translations[currentLang][msgKey];
-                        if (loginErrorBox) loginErrorBox.classList.remove('hidden');
-                        if (loginCard) {
-                            loginCard.classList.remove('animate-shake');
-                            void loginCard.offsetWidth;
-                            loginCard.classList.add('animate-shake');
-                        }
-                    };
-
-                    if (!rawUsername || !password) {
-                        showLoginError('loginError');
-                        return;
-                    }
-
-                    if (!firebaseAuth) {
-                        showLoginError('firebaseConfigError');
-                        return;
-                    }
-
-                    if (loginErrorBox) loginErrorBox.classList.add('hidden');
+                    if (loginErrorBox) loginErrorBox.classList.add("hidden");
                     if (loginSubmitBtn) {
                         loginSubmitBtn.disabled = true;
-                        loginSubmitBtn.textContent = translations[currentLang].loggingInBtn;
+                        loginSubmitBtn.textContent = translations[currentLang].loginChecking;
                     }
 
                     try {
-                        const email = rawUsername.includes('@') ? rawUsername : `${rawUsername.toLowerCase()}@s2f.local`;
-                        await signInWithEmailAndPassword(firebaseAuth, email, password);
+                        if (!firebaseAuth || !firestoreDb) {
+                            throw new Error("Firebase not initialized");
+                        }
 
-                        isLoggedIn = true;
-                        if (loggedInUserBadge) {
-                            loggedInUserBadge.textContent = rawUsername.split('@')[0].toUpperCase();
+                        if (typeof __initial_auth_token !== "undefined" && __initial_auth_token) {
+                            await signInWithCustomToken(firebaseAuth, __initial_auth_token);
+                        } else {
+                            await signInAnonymously(firebaseAuth);
                         }
-                        if (dashboardUserControls) {
-                            dashboardUserControls.classList.remove('hidden');
-                            dashboardUserControls.classList.add('flex');
+
+                        let matched = false;
+
+                        // Check standard accounts collection: artifacts/{appId}/public/data/accounts
+                        try {
+                            const accountsSnap = await getDocs(
+                                collection(firestoreDb, "artifacts", appId, "public", "data", "accounts")
+                            );
+                            accountsSnap.forEach((docSnap) => {
+                                const data = docSnap.data() || {};
+                                if (
+                                    (data.username === enteredUser && String(data.password) === enteredPass) ||
+                                    (Object.prototype.hasOwnProperty.call(data, enteredUser) &&
+                                        String(data[enteredUser]) === enteredPass)
+                                ) {
+                                    matched = true;
+                                }
+                            });
+                        } catch (colErr) {
+                            console.warn("Accounts collection lookup:", colErr);
                         }
-                        refreshAllViews();
-                        switchView('dashboard');
-                    } catch (authErr) {
-                        showLoginError('loginError');
+
+                        // Also check direct fields on artifacts/{appId} document if present
+                        if (!matched) {
+                            try {
+                                const rootDocSnap = await getDoc(doc(firestoreDb, "artifacts", appId));
+                                if (rootDocSnap.exists()) {
+                                    const rootData = rootDocSnap.data() || {};
+                                    if (
+                                        Object.prototype.hasOwnProperty.call(rootData, enteredUser) &&
+                                        String(rootData[enteredUser]) === enteredPass
+                                    ) {
+                                        matched = true;
+                                    }
+                                }
+                            } catch (docErr) {
+                                console.warn("Root doc lookup:", docErr);
+                            }
+                        }
+
+                        if (matched) {
+                            isAuthenticated = true;
+                            if (loggedInUserBadge) loggedInUserBadge.textContent = enteredUser;
+                            switchView("dashboard");
+                        } else {
+                            await signOut(firebaseAuth).catch(() => {});
+                            showLoginError("loginError");
+                        }
+                    } catch (err) {
+                        console.error("Login verification error:", err);
+                        showLoginError("loginServerError");
                     } finally {
                         if (loginSubmitBtn) {
                             loginSubmitBtn.disabled = false;
@@ -2368,197 +2374,15 @@
                         }
                     }
                 });
-
-                document.getElementById('logoutBtn')?.addEventListener('click', async () => {
-                    try {
-                        if (firebaseAuth) {
-                            await signOut(firebaseAuth);
-                        }
-                    } catch (e) {
-                        // Ignore signOut errors and reset UI cleanly
-                    }
-                    isLoggedIn = false;
-                    if (inactivityTimer) {
-                        clearTimeout(inactivityTimer);
-                        inactivityTimer = null;
-                    }
-                    if (dashboardUserControls) {
-                        dashboardUserControls.classList.add('hidden');
-                        dashboardUserControls.classList.remove('flex');
-                    }
-                    const uInput = document.getElementById('usernameInput');
-                    const pInput = document.getElementById('passwordInput');
-                    if (uInput) uInput.value = '';
-                    if (pInput) pInput.value = '';
-                    switchView('login');
-                });
-
-                // ==========================================
-                // 13. Category Buttons & Back Buttons
-                // ==========================================
-                document.querySelectorAll('.category-btn').forEach((btn) => {
-                    btn.addEventListener('click', () => {
-                        const cat = btn.getAttribute('data-category');
-                        if (cat === '公假名單') {
-                            refreshLeaveCalendar();
-                            renderLeaveDetails(selectedLeaveDate);
-                            switchView('leave');
-                        } else if (cat === '功課') {
-                            refreshHwCalendar();
-                            renderGenericItemDetails(selectedHwDate, homeworkData, 'hwSelectedDateHeading', 'hwCountBadge', 'hwDetailContent', 'noHwMsg');
-                            switchView('homework');
-                        } else if (cat === '調課/代課情況') {
-                            refreshScCalendar();
-                            renderGenericItemDetails(selectedScDate, scheduleChangeData, 'scSelectedDateHeading', 'scCountBadge', 'scDetailContent', 'noScMsg');
-                            switchView('schedule');
-                        } else if (cat === '測驗') {
-                            refreshTestCalendar();
-                            renderGenericItemDetails(selectedTestDate, testData, 'testSelectedDateHeading', 'testCountBadge', 'testDetailContent', 'noTestMsg');
-                            switchView('test');
-                        } else if (cat === '學校活動') {
-                            refreshActCalendar();
-                            renderGenericItemDetails(selectedActDate, activityData, 'actSelectedDateHeading', 'actCountBadge', 'actDetailContent', 'noActMsg');
-                            switchView('activity');
-                        } else if (cat === '值日') {
-                            renderDutyRoster();
-                            switchView('duty');
-                        }
-                    });
-                });
-
-                ['backToDashboardBtn', 'backFromHwBtn', 'backFromScBtn', 'backFromTestBtn', 'backFromActBtn', 'backFromDutyBtn'].forEach((btnId) => {
-                    document.getElementById(btnId)?.addEventListener('click', () => switchView('dashboard'));
-                });
-
-                // Month Navigation Listeners
-                document.getElementById('leavePrevMonthBtn')?.addEventListener('click', () => {
-                    if (leaveMonthIdx > 0) { leaveMonthIdx--; refreshLeaveCalendar(); }
-                });
-                document.getElementById('leaveNextMonthBtn')?.addEventListener('click', () => {
-                    if (leaveMonthIdx < availableMonths.length - 1) { leaveMonthIdx++; refreshLeaveCalendar(); }
-                });
-                document.getElementById('leaveMonth11Btn')?.addEventListener('click', () => { leaveMonthIdx = 0; refreshLeaveCalendar(); });
-                document.getElementById('leaveMonth12Btn')?.addEventListener('click', () => { leaveMonthIdx = 1; refreshLeaveCalendar(); });
-
-                document.getElementById('hwPrevMonthBtn')?.addEventListener('click', () => {
-                    if (hwMonthIdx > 0) { hwMonthIdx--; refreshHwCalendar(); }
-                });
-                document.getElementById('hwNextMonthBtn')?.addEventListener('click', () => {
-                    if (hwMonthIdx < availableMonths.length - 1) { hwMonthIdx++; refreshHwCalendar(); }
-                });
-                document.getElementById('hwMonth11Btn')?.addEventListener('click', () => { hwMonthIdx = 0; refreshHwCalendar(); });
-                document.getElementById('hwMonth12Btn')?.addEventListener('click', () => { hwMonthIdx = 1; refreshHwCalendar(); });
-
-                document.getElementById('scPrevMonthBtn')?.addEventListener('click', () => {
-                    if (scMonthIdx > 0) { scMonthIdx--; refreshScCalendar(); }
-                });
-                document.getElementById('scNextMonthBtn')?.addEventListener('click', () => {
-                    if (scMonthIdx < availableMonths.length - 1) { scMonthIdx++; refreshScCalendar(); }
-                });
-                document.getElementById('scMonth11Btn')?.addEventListener('click', () => { scMonthIdx = 0; refreshScCalendar(); });
-                document.getElementById('scMonth12Btn')?.addEventListener('click', () => { scMonthIdx = 1; refreshScCalendar(); });
-
-                document.getElementById('testPrevMonthBtn')?.addEventListener('click', () => {
-                    if (testMonthIdx > 0) { testMonthIdx--; refreshTestCalendar(); }
-                });
-                document.getElementById('testNextMonthBtn')?.addEventListener('click', () => {
-                    if (testMonthIdx < availableMonths.length - 1) { testMonthIdx++; refreshTestCalendar(); }
-                });
-                document.getElementById('testMonth11Btn')?.addEventListener('click', () => { testMonthIdx = 0; refreshTestCalendar(); });
-                document.getElementById('testMonth12Btn')?.addEventListener('click', () => { testMonthIdx = 1; refreshTestCalendar(); });
-
-                document.getElementById('actPrevMonthBtn')?.addEventListener('click', () => {
-                    if (actMonthIdx > 0) { actMonthIdx--; refreshActCalendar(); }
-                });
-                document.getElementById('actNextMonthBtn')?.addEventListener('click', () => {
-                    if (actMonthIdx < actAvailableMonths.length - 1) { actMonthIdx++; refreshActCalendar(); }
-                });
-                document.getElementById('actMonth11Btn')?.addEventListener('click', () => { actMonthIdx = 0; refreshActCalendar(); });
-                document.getElementById('actMonth12Btn')?.addEventListener('click', () => { actMonthIdx = 1; refreshActCalendar(); });
-                document.getElementById('actMonth01Btn')?.addEventListener('click', () => { actMonthIdx = 2; refreshActCalendar(); });
-
-                // ==========================================
-                // 14. Three.js Vertical Spinning Orbit Lines Only
-                // ==========================================
-                const canvas = document.getElementById('solarCanvas');
-                if (canvas && typeof THREE !== 'undefined') {
-                    const scene = new THREE.Scene();
-                    const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
-                    camera.position.set(0, 0, 18);
-
-                    const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
-                    renderer.setSize(window.innerWidth, window.innerHeight);
-                    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-
-                    const orbitGroup = new THREE.Group();
-                    scene.add(orbitGroup);
-
-                    // Create vertical spinning orbit rings only (no central planet)
-                    const ringRadii = [4.5, 6.4, 8.3, 10.2];
-                    const orbitRings = ringRadii.map((radius, idx) => {
-                        const geo = new THREE.RingGeometry(radius - 0.025, radius + 0.025, 128);
-                        const mat = new THREE.MeshBasicMaterial({
-                            color: idx % 2 === 0 ? 0xf59e0b : 0xfb923c,
-                            side: THREE.DoubleSide,
-                            transparent: true,
-                            opacity: 0.24 - idx * 0.03
-                        });
-                        const ring = new THREE.Mesh(geo, mat);
-                        ring.rotation.x = Math.PI / 2 + (idx - 1.5) * 0.22;
-                        ring.rotation.y = idx * 0.45;
-                        orbitGroup.add(ring);
-                        return ring;
-                    });
-
-                    // Subtle ambient solar dust particles
-                    const particleCount = 140;
-                    const particleGeo = new THREE.BufferGeometry();
-                    const positions = new Float32Array(particleCount * 3);
-                    for (let i = 0; i < particleCount * 3; i += 3) {
-                        positions[i] = (Math.random() - 0.5) * 34;
-                        positions[i + 1] = (Math.random() - 0.5) * 24;
-                        positions[i + 2] = (Math.random() - 0.5) * 18;
-                    }
-                    particleGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-                    const particleMat = new THREE.PointsMaterial({
-                        color: 0xfbbf24,
-                        size: 0.06,
-                        transparent: true,
-                        opacity: 0.35
-                    });
-                    const particles = new THREE.Points(particleGeo, particleMat);
-                    scene.add(particles);
-
-                    window.addEventListener('resize', () => {
-                        camera.aspect = window.innerWidth / window.innerHeight;
-                        camera.updateProjectionMatrix();
-                        renderer.setSize(window.innerWidth, window.innerHeight);
-                    });
-
-                    function animate() {
-                        requestAnimationFrame(animate);
-                        orbitRings.forEach((ring, idx) => {
-                            ring.rotation.x += 0.0022 * (idx % 2 === 0 ? 1 : -1);
-                            ring.rotation.y += 0.0014 * (idx % 2 === 0 ? 1 : -1);
-                        });
-                        particles.rotation.y += 0.0004;
-                        renderer.render(scene, camera);
-                    }
-                    animate();
-                }
-
-                // Initial view render
-                applyLanguage('zh');
-            } catch (err) {
-                console.error('Portal initialization error:', err);
             }
+
+            applyLanguage("zh");
         }
 
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', initPortal);
-        } else {
+        window.addEventListener("load", () => {
+            initSolarCanvas();
             initPortal();
-        }
+        });
     </script>
 </body>
 </html>
