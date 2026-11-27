@@ -85,7 +85,7 @@
                 <div id="dashboardUserControls" class="hidden items-center gap-2">
                     <span class="hidden sm:inline-flex items-center gap-1.5 rounded-full bg-amber-500/10 border border-amber-500/30 px-3 py-1.5 font-mono text-xs text-amber-300">
                         <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
-                        S2F_remarks
+                        <span id="loggedInUserBadge">USER</span>
                     </span>
                     <button
                         type="button"
@@ -164,11 +164,12 @@
 
                     <!-- Error Message Box -->
                     <div id="loginErrorBox" class="hidden rounded-2xl bg-red-500/15 border border-red-400/50 px-4 py-2.5 text-xs sm:text-sm text-red-200">
-                        <span data-i18n="loginError">用戶名稱或密碼錯誤，請再試一次。</span>
+                        <span id="loginErrorText" data-i18n="loginError">用戶名稱或密碼錯誤，請再試一次。</span>
                     </div>
 
                     <button
                         type="submit"
+                        id="loginSubmitBtn"
                         data-i18n="loginBtn"
                         class="w-full mt-2 rounded-2xl bg-gradient-to-r from-amber-500 via-orange-500 to-amber-500 hover:from-amber-400 hover:to-orange-400 text-stone-950 font-bold text-sm sm:text-base py-3.5 px-6 shadow-[0_0_25px_rgba(245,158,11,0.4)] hover:shadow-[0_0_32px_rgba(251,191,36,0.65)] active:scale-[0.99] transition-all cursor-pointer"
                     >
@@ -718,7 +719,7 @@
             </div>
 
             <div class="shrink-0 w-full flex justify-end mt-2 sm:mt-2.5">
-                <span data-i18n="lastUpdatedLeave" class="font-mono text-xs sm:text-sm text-amber-200/70 tracking-wide">最後更新時間: 2026-11-26</span>
+                <span data-i18n="lastUpdatedAct" class="font-mono text-xs sm:text-sm text-amber-200/70 tracking-wide">最後更新時間: 2026-11-27</span>
             </div>
         </section>
 
@@ -763,8 +764,11 @@
         </section>
     </main>
 
-    <script>
-        window.onload = function () {
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+
+        function initPortal() {
             try {
                 // ==========================================
                 // 1. Bilingual Translation Dictionary
@@ -778,7 +782,9 @@
                         passwordLabel: '密碼',
                         passwordPlaceholder: '請輸入密碼',
                         loginBtn: '登入',
+                        loggingInBtn: '驗證中...',
                         loginError: '用戶名稱或密碼錯誤，請再試一次。',
+                        firebaseConfigError: '尚未連接 Firebase 伺服器設定，請先在程式碼中填入 firebaseConfig。',
                         logoutBtn: '登出',
                         greetingTopic: '您好, 您需要查詢什麼?',
                         cat1: '公假名單',
@@ -787,7 +793,9 @@
                         cat4: '測驗',
                         cat5: '學校活動',
                         cat6: '值日',
-                        statusSchoolHours: '上課時段',
+                        statusInClass: '上課中',
+                        statusRecess: '小息',
+                        statusLunch: '午飯',
                         statusAfterSchool: '放學時段',
                         backBtn: '返回主選單',
                         month11Label: '11月',
@@ -801,42 +809,47 @@
                         legendHasTest: '有測驗',
                         legendHasAct: '有活動',
                         selectedDateLabel: '查詢日期',
-                        noLeaveToday: '今日沒有人請公假',
-                        noLeaveSub: '點擊日曆上有綠色標記的日期以查看公假學生名單',
-                        leaveCountSuffix: '人請公假',
-                        noHwToday: '今日沒有功課',
-                        noHwSub: '點擊日曆上有綠色標記的日期以查看當日功課清單',
-                        hwGroupSuffix: '組功課',
-                        noScToday: '今日沒有調課/代課',
-                        noScSub: '點擊日曆上有綠色標記的日期以查看調課及代課詳情',
-                        scCountSuffix: '項調/代課',
-                        noTestToday: '今日沒有測驗',
-                        noTestSub: '點擊日曆上有綠色標記的日期以查看測驗範圍與安排',
-                        testCountSuffix: '項測驗',
-                        noActToday: '今日沒有學校活動',
-                        noActSub: '點擊日曆上有綠色標記的日期以查看學校活動及假期安排',
-                        actCountSuffix: '項活動/安排',
+                        passedDateMsg: '此日期已過，無需查詢。',
+                        noLeaveMsg: '本日暫無公假名單記錄。',
+                        noHwMsg: '本日暫無功課記錄。',
+                        noScMsg: '本日暫無調課/代課安排。',
+                        noTestMsg: '本日暫無測驗安排。',
+                        noActMsg: '本日暫無學校活動安排。',
+                        peopleUnit: '人',
+                        itemsUnit: '項',
                         lastUpdatedLeave: '最後更新時間: 2026-11-26',
-                        comingSoonPrefix: '模組建置中：'
+                        lastUpdatedAct: '最後更新時間: 2026-11-27',
+                        dutyDateTitle: '值日日期',
+                        dutyDateDisplay: '2026年11月27日 (星期五)',
+                        dutySweep: '掃地',
+                        dutyConsole: '總控台',
+                        dutyBlackboard: '擦黑板',
+                        dutyTrash: '倒垃圾',
+                        dutySpecialTitle: '特別提醒',
+                        dutySpecialDetail: '鍾鎧汶 (39) -- 4天'
                     },
                     en: {
                         systemAccess: 'SYSTEM ACCESS',
-                        loginTitle: 'S2F Portal Login',
+                        loginTitle: 'S2F System Login',
                         usernameLabel: 'Username',
                         usernamePlaceholder: 'Enter username',
                         passwordLabel: 'Password',
                         passwordPlaceholder: 'Enter password',
                         loginBtn: 'Sign In',
+                        loggingInBtn: 'Verifying...',
                         loginError: 'Invalid username or password. Please try again.',
+                        firebaseConfigError: 'Firebase config is not connected yet. Please add your firebaseConfig.',
                         logoutBtn: 'Logout',
                         greetingTopic: 'Hello, what would you like to check?',
-                        cat1: 'Official Leave',
+                        cat1: 'Official Leave List',
                         cat2: 'Homework',
-                        cat3: 'Schedule / Substitution',
+                        cat3: 'Schedule / Substitute Changes',
                         cat4: 'Tests & Quizzes',
                         cat5: 'School Activities',
                         cat6: 'Duty Roster',
-                        statusSchoolHours: 'School Hours',
+                        statusInClass: 'In Class',
+                        statusRecess: 'Recess',
+                        statusLunch: 'Lunch Break',
                         statusAfterSchool: 'After School',
                         backBtn: 'Back to Menu',
                         month11Label: 'Nov',
@@ -844,1508 +857,956 @@
                         month01Label: 'Jan',
                         legendPassed: 'Passed',
                         legendToday: 'Today',
-                        legendHasLeave: 'Has Leave',
-                        legendHasHw: 'Has Homework',
-                        legendHasSc: 'Has Change',
-                        legendHasTest: 'Has Test',
-                        legendHasAct: 'Has Event',
+                        legendHasLeave: 'Leave Listed',
+                        legendHasHw: 'Homework',
+                        legendHasSc: 'Change Listed',
+                        legendHasTest: 'Test Listed',
+                        legendHasAct: 'Activity Listed',
                         selectedDateLabel: 'SELECTED DATE',
-                        noLeaveToday: 'No students on official leave today',
-                        noLeaveSub: 'Select a green-marked date on the calendar to view the leave roster',
-                        leaveCountSuffix: 'on leave',
-                        noHwToday: 'No homework assigned today',
-                        noHwSub: 'Select a green-marked date on the calendar to view homework details',
-                        hwGroupSuffix: 'groups',
-                        noScToday: 'No class changes or substitutions today',
-                        noScSub: 'Select a green-marked date on the calendar to view schedule updates',
-                        scCountSuffix: 'updates',
-                        noTestToday: 'No tests or quizzes today',
-                        noTestSub: 'Select a green-marked date on the calendar to view test scope',
-                        testCountSuffix: 'tests',
-                        noActToday: 'No school activities today',
-                        noActSub: 'Select a green-marked date on the calendar to view school events',
-                        actCountSuffix: 'events',
+                        passedDateMsg: 'This date has already passed.',
+                        noLeaveMsg: 'No official leave recorded for this date.',
+                        noHwMsg: 'No homework recorded for this date.',
+                        noScMsg: 'No schedule or substitute changes for this date.',
+                        noTestMsg: 'No tests or quizzes scheduled for this date.',
+                        noActMsg: 'No school activities scheduled for this date.',
+                        peopleUnit: 'Students',
+                        itemsUnit: 'Items',
                         lastUpdatedLeave: 'Last Updated: 2026-11-26',
-                        comingSoonPrefix: 'Module pending setup: '
+                        lastUpdatedAct: 'Last Updated: 2026-11-27',
+                        dutyDateTitle: 'DUTY DATE',
+                        dutyDateDisplay: '2026年11月27日 (星期五)',
+                        dutySweep: 'Sweeping (掃地)',
+                        dutyConsole: 'Main Console (總控台)',
+                        dutyBlackboard: 'Blackboard (擦黑板)',
+                        dutyTrash: 'Trash Duty (倒垃圾)',
+                        dutySpecialTitle: 'Special Reminder (特別提醒)',
+                        dutySpecialDetail: '鍾鎧汶 (39) -- 4天'
                     }
                 };
 
-                let currentLang = 'zh';
+                // ==========================================
+                // 2. Firebase Authentication Setup (Secondary-remarks)
+                //    Zero credentials stored in client source code
+                // ==========================================
+                const defaultFirebaseConfig = {
+                    apiKey: "AIzaSyCLu7K902D2zpyejrqIp3OxnBuSgI4Mx_Q",
+                    authDomain: "secondary-remarks.firebaseapp.com",
+                    projectId: "secondary-remarks",
+                    storageBucket: "secondary-remarks.firebasestorage.app",
+                    messagingSenderId: "348392364301",
+                    appId: "1:348392364301:web:1787d142c7426f55f944"
+                };
 
-                // Helper: Real-time Macau (GMT+8) Date & Time Parts
-                function getMacauDateTimeParts() {
-                    const now = new Date();
-                    const parts = new Intl.DateTimeFormat('en-US', {
-                        timeZone: 'Asia/Macau',
-                        year: 'numeric',
-                        month: '2-digit',
-                        day: '2-digit',
-                        weekday: 'short',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                        second: '2-digit',
-                        hour12: false
-                    }).formatToParts(now);
+                const firebaseConfig = (typeof __firebase_config !== 'undefined' && __firebase_config)
+                    ? JSON.parse(__firebase_config)
+                    : defaultFirebaseConfig;
 
-                    const map = {};
-                    parts.forEach((p) => {
-                        map[p.type] = p.value;
-                    });
-
-                    const yearStr = map.year || '2026';
-                    const monthStr = String(map.month || '11').padStart(2, '0');
-                    const dayStr = String(map.day || '27').padStart(2, '0');
-                    const weekday = map.weekday || 'Fri';
-                    const hourNum = parseInt(map.hour || '0', 10) % 24;
-                    const minNum = parseInt(map.minute || '0', 10);
-                    const secStr = String(map.second || '00').padStart(2, '0');
-
-                    return {
-                        yearStr,
-                        monthStr,
-                        dayStr,
-                        dateStr: `${yearStr}-${monthStr}-${dayStr}`,
-                        weekday,
-                        hourNum,
-                        minNum,
-                        secStr
-                    };
+                let firebaseAuth = null;
+                if (firebaseConfig && firebaseConfig.apiKey) {
+                    const firebaseApp = initializeApp(firebaseConfig);
+                    firebaseAuth = getAuth(firebaseApp);
                 }
 
-                let TODAY_DATE_STR = getMacauDateTimeParts().dateStr;
-
                 // ==========================================
-                // 2. Official Leave Data & Calendar (01)
+                // 3. Portal Datasets
                 // ==========================================
                 const officialLeaveData = {
                     '2026-11-27': [
-                        { name: '王梓悠', classNo: 1 },
-                        { name: '吳奕恩', classNo: 3 },
-                        { name: '林建璋', classNo: 11 },
-                        { name: '陳澤楷', classNo: 23 },
-                        { name: '黃胤澤', classNo: 25 },
-                        { name: '葉柏豪', classNo: 30 },
-                        { name: '劉承之', classNo: 33 },
-                        { name: '鄧正謙', classNo: 36 },
-                        { name: '關芷晴', classNo: 41 },
-                        { name: '關藹琳', classNo: 42 }
+                        '1. 王梓悠 (1)',
+                        '2. 吳奕恩 (3)',
+                        '3. 林建璋 (11)',
+                        '4. 陳澤楷 (23)',
+                        '5. 黃胤澤 (25)',
+                        '6. 葉柏豪 (30)',
+                        '7. 劉承之 (33)',
+                        '8. 鄧正謙 (36)',
+                        '9. 關芷晴 (41)',
+                        '10. 關藹琳 (42)'
                     ],
                     '2026-11-28': [
-                        { name: '王梓悠', classNo: 1 },
-                        { name: '吳奕恩', classNo: 3 },
-                        { name: '周琬兒', classNo: 9 },
-                        { name: '林建璋', classNo: 11 },
-                        { name: '張欣蔓', classNo: 15 },
-                        { name: '莫梓明', classNo: 18 },
-                        { name: '許思然', classNo: 19 },
-                        { name: '陳心喬', classNo: 20 },
-                        { name: '陳澤楷', classNo: 23 },
-                        { name: '黃胤澤', classNo: 25 },
-                        { name: '黃詠彤', classNo: 28 },
-                        { name: '葉柏豪', classNo: 30 },
-                        { name: '趙文濼', classNo: 31 },
-                        { name: '劉承之', classNo: 33 },
-                        { name: '劉芷琪', classNo: 34 },
-                        { name: '蔡智晴', classNo: 35 },
-                        { name: '鄧正謙', classNo: 36 },
-                        { name: '關芷晴', classNo: 41 },
-                        { name: '關藹琳', classNo: 42 }
+                        '1. 王梓悠 (1)',
+                        '2. 吳奕恩 (3)',
+                        '3. 周琬兒 (9)',
+                        '4. 林建璋 (11)',
+                        '5. 張欣蔓 (15)',
+                        '6. 莫梓明 (18)',
+                        '7. 許思然 (19)',
+                        '8. 陳心喬 (20)',
+                        '9. 陳澤楷 (23)',
+                        '10. 黃胤澤 (25)',
+                        '11. 黃詠彤 (28)',
+                        '12. 葉柏豪 (30)',
+                        '13. 趙文濼 (31)',
+                        '14. 劉承之 (33)',
+                        '15. 劉芷琪 (34)',
+                        '16. 蔡智晴 (35)',
+                        '17. 鄧正謙 (36)',
+                        '18. 關芷晴 (41)',
+                        '19. 關藹琳 (42)'
                     ],
                     '2026-11-29': [
-                        { name: '王梓悠', classNo: 1 },
-                        { name: '吳奕恩', classNo: 3 },
-                        { name: '林建璋', classNo: 11 },
-                        { name: '陳澤楷', classNo: 23 },
-                        { name: '黃胤澤', classNo: 25 },
-                        { name: '葉柏豪', classNo: 30 },
-                        { name: '劉承之', classNo: 33 },
-                        { name: '鄧正謙', classNo: 36 },
-                        { name: '關芷晴', classNo: 41 },
-                        { name: '關藹琳', classNo: 42 }
+                        '1. 王梓悠 (1)',
+                        '2. 吳奕恩 (3)',
+                        '3. 林建璋 (11)',
+                        '4. 陳澤楷 (23)',
+                        '5. 黃胤澤 (25)',
+                        '6. 葉柏豪 (30)',
+                        '7. 劉承之 (33)',
+                        '8. 鄧正謙 (36)',
+                        '9. 關芷晴 (41)',
+                        '10. 關藹琳 (42)'
                     ],
                     '2026-11-30': [
-                        { name: '許思然', classNo: 19 }
+                        '1. 許思然 (19)'
                     ],
-                    '2026-12-01': [
-                        { name: '許思然', classNo: 19 }
-                    ],
-                    '2026-12-02': [
-                        { name: '許思然', classNo: 19 },
-                        { name: '關芷晴', classNo: 41 }
-                    ],
-                    '2026-12-03': [
-                        { name: '許思然', classNo: 19 },
-                        { name: '關芷晴', classNo: 41 }
-                    ],
-                    '2026-12-04': [
-                        { name: '許思然', classNo: 19 },
-                        { name: '關芷晴', classNo: 41 }
-                    ],
-                    '2026-12-05': [
-                        { name: '關芷晴', classNo: 41 }
-                    ]
+                    '2026-12-01': ['1. 許思然 (19)', '2. 關芷晴 (41)'],
+                    '2026-12-02': ['1. 許思然 (19)', '2. 關芷晴 (41)'],
+                    '2026-12-03': ['1. 許思然 (19)', '2. 關芷晴 (41)'],
+                    '2026-12-04': ['1. 許思然 (19)', '2. 關芷晴 (41)'],
+                    '2026-12-05': ['1. 許思然 (19)', '2. 關芷晴 (41)']
                 };
 
-                let selectedLeaveDate = TODAY_DATE_STR;
-                let leaveCalendarMonth = 11;
+                const homeworkData = {};
+                const scheduleChangeData = {};
+                const testData = {
+                    '2026-12-05': ['English Graded Reading']
+                };
+                const activityData = {
+                    '2026-12-02': ['聖誕攤位前會議'],
+                    '2026-12-15': ['交聖誕壁報']
+                };
 
-                function setLeaveCalendarMonth(month) {
-                    leaveCalendarMonth = month;
-                    const month11Btn = document.getElementById('leaveMonth11Btn');
-                    const month12Btn = document.getElementById('leaveMonth12Btn');
-                    const prevBtn = document.getElementById('leavePrevMonthBtn');
-                    const nextBtn = document.getElementById('leaveNextMonthBtn');
-
-                    const activeCls = 'rounded-full px-3 py-1 text-xs font-bold bg-amber-500 text-stone-950 shadow-[0_0_10px_rgba(245,158,11,0.35)] transition-all cursor-pointer';
-                    const inactiveCls = 'rounded-full px-3 py-1 text-xs font-medium text-amber-200/75 hover:text-amber-50 transition-all cursor-pointer';
-
-                    if (month === 11) {
-                        if (month11Btn) month11Btn.className = activeCls;
-                        if (month12Btn) month12Btn.className = inactiveCls;
-                        if (prevBtn) prevBtn.disabled = true;
-                        if (nextBtn) nextBtn.disabled = false;
-                    } else {
-                        if (month11Btn) month11Btn.className = inactiveCls;
-                        if (month12Btn) month12Btn.className = activeCls;
-                        if (prevBtn) prevBtn.disabled = false;
-                        if (nextBtn) nextBtn.disabled = true;
-                    }
-                    renderLeaveCalendar();
+                // ==========================================
+                // 4. Live Macau (GMT+8) Date & Time Helper
+                // ==========================================
+                function getMacauNow() {
+                    const now = new Date();
+                    const utcMs = now.getTime() + now.getTimezoneOffset() * 60000;
+                    return new Date(utcMs + 8 * 3600000);
                 }
 
+                function getMacauTodayStr() {
+                    const macau = getMacauNow();
+                    const y = macau.getFullYear();
+                    const m = String(macau.getMonth() + 1).padStart(2, '0');
+                    const d = String(macau.getDate()).padStart(2, '0');
+                    return `${y}-${m}-${d}`;
+                }
+
+                // ==========================================
+                // 5. Application State & DOM References
+                // ==========================================
+                let currentLang = 'zh';
+                let isLoggedIn = false;
+                let activeViewName = 'login';
+                let currentMacauTodayStr = getMacauTodayStr();
+
+                const availableMonths = [
+                    { year: 2026, month: 11, labelZh: '2026年 11月', labelEn: 'November 2026' },
+                    { year: 2026, month: 12, labelZh: '2026年 12月', labelEn: 'December 2026' }
+                ];
+
+                const actAvailableMonths = [
+                    { year: 2026, month: 11, labelZh: '2026年 11月', labelEn: 'November 2026' },
+                    { year: 2026, month: 12, labelZh: '2026年 12月', labelEn: 'December 2026' },
+                    { year: 2027, month: 1, labelZh: '2027年 1月', labelEn: 'January 2027' }
+                ];
+
+                let leaveMonthIdx = 0;
+                let selectedLeaveDate = currentMacauTodayStr;
+
+                let hwMonthIdx = 0;
+                let selectedHwDate = currentMacauTodayStr;
+
+                let scMonthIdx = 0;
+                let selectedScDate = currentMacauTodayStr;
+
+                let testMonthIdx = 0;
+                let selectedTestDate = currentMacauTodayStr;
+
+                let actMonthIdx = 0;
+                let selectedActDate = currentMacauTodayStr;
+
+                const views = {
+                    login: document.getElementById('loginView'),
+                    dashboard: document.getElementById('dashboardView'),
+                    leave: document.getElementById('officialLeaveView'),
+                    homework: document.getElementById('homeworkView'),
+                    schedule: document.getElementById('scheduleChangeView'),
+                    test: document.getElementById('testView'),
+                    activity: document.getElementById('activityView'),
+                    duty: document.getElementById('dutyView')
+                };
+
+                // ==========================================
+                // 6. View Navigation & 30s Inactivity Timer
+                // ==========================================
+                let inactivityTimer = null;
+
+                function resetInactivityTimer() {
+                    if (inactivityTimer) {
+                        clearTimeout(inactivityTimer);
+                        inactivityTimer = null;
+                    }
+                    if (!isLoggedIn) return;
+                    if (activeViewName === 'dashboard' || activeViewName === 'login') return;
+
+                    inactivityTimer = setTimeout(() => {
+                        if (isLoggedIn && activeViewName !== 'dashboard' && activeViewName !== 'login') {
+                            switchView('dashboard');
+                        }
+                    }, 30000);
+                }
+
+                ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll', 'click'].forEach((evtName) => {
+                    window.addEventListener(evtName, resetInactivityTimer, { passive: true });
+                });
+
+                function switchView(targetName) {
+                    activeViewName = targetName;
+                    Object.entries(views).forEach(([name, el]) => {
+                        if (!el) return;
+                        if (name === targetName) {
+                            el.classList.remove('hidden');
+                            el.classList.add('flex');
+                            requestAnimationFrame(() => {
+                                el.classList.remove('opacity-0', 'translate-y-4');
+                                el.classList.add('opacity-100', 'translate-y-0');
+                            });
+                        } else {
+                            el.classList.add('hidden', 'opacity-0', 'translate-y-4');
+                            el.classList.remove('flex', 'opacity-100', 'translate-y-0');
+                        }
+                    });
+                    resetInactivityTimer();
+                }
+
+                // ==========================================
+                // 7. Generic Calendar & Detail Renderer
+                // ==========================================
+                function renderModuleCalendar(config) {
+                    const {
+                        monthObj,
+                        monthIdx,
+                        monthsList,
+                        selectedDate,
+                        dataMap,
+                        titleEl,
+                        prevBtn,
+                        nextBtn,
+                        monthBtns,
+                        gridEl,
+                        onSelectDate
+                    } = config;
+
+                    const todayStr = getMacauTodayStr();
+
+                    if (titleEl) {
+                        titleEl.textContent = currentLang === 'zh' ? monthObj.labelZh : monthObj.labelEn;
+                    }
+                    if (prevBtn) prevBtn.disabled = monthIdx === 0;
+                    if (nextBtn) nextBtn.disabled = monthIdx === monthsList.length - 1;
+
+                    monthBtns.forEach((btn, idx) => {
+                        if (!btn) return;
+                        if (idx === monthIdx) {
+                            btn.className = 'rounded-full px-3 py-1 text-xs font-bold bg-amber-500 text-stone-950 shadow-[0_0_10px_rgba(245,158,11,0.35)] transition-all cursor-pointer';
+                        } else {
+                            btn.className = 'rounded-full px-3 py-1 text-xs font-medium text-amber-200/75 hover:text-amber-50 transition-all cursor-pointer';
+                        }
+                    });
+
+                    if (!gridEl) return;
+                    gridEl.innerHTML = '';
+
+                    const firstDay = new Date(monthObj.year, monthObj.month - 1, 1).getDay();
+                    const daysInMonth = new Date(monthObj.year, monthObj.month, 0).getDate();
+
+                    for (let i = 0; i < firstDay; i++) {
+                        const emptyCell = document.createElement('div');
+                        emptyCell.className = 'rounded-xl sm:rounded-2xl bg-transparent';
+                        gridEl.appendChild(emptyCell);
+                    }
+
+                    for (let day = 1; day <= daysInMonth; day++) {
+                        const mm = String(monthObj.month).padStart(2, '0');
+                        const dd = String(day).padStart(2, '0');
+                        const dateStr = `${monthObj.year}-${mm}-${dd}`;
+                        const isPassed = dateStr < todayStr;
+                        const isToday = dateStr === todayStr;
+                        const isSelected = dateStr === selectedDate;
+                        const hasItems = Array.isArray(dataMap[dateStr]) && dataMap[dateStr].length > 0;
+
+                        const btn = document.createElement('button');
+                        btn.type = 'button';
+                        btn.setAttribute('aria-label', dateStr);
+
+                        let baseClass = 'relative w-full h-full min-h-[38px] sm:min-h-[44px] rounded-xl sm:rounded-2xl flex flex-col items-center justify-center font-mono text-xs sm:text-sm transition-all cursor-pointer border ';
+
+                        if (isPassed) {
+                            baseClass += isSelected
+                                ? 'bg-white/15 border-gray-400/70 text-gray-300 font-bold '
+                                : 'bg-white/[0.04] border-white/10 text-gray-500 hover:bg-white/10 hover:text-gray-300 ';
+                        } else if (isSelected) {
+                            baseClass += 'bg-amber-500/25 border-amber-400 text-amber-100 font-bold shadow-[0_0_16px_rgba(245,158,11,0.3)] ';
+                        } else if (isToday) {
+                            baseClass += 'bg-amber-500/15 border-amber-400/70 text-amber-200 font-bold hover:bg-amber-500/25 ';
+                        } else {
+                            baseClass += 'bg-[#120703]/70 border-amber-500/20 text-amber-100/90 hover:border-amber-400/60 hover:bg-amber-500/10 ';
+                        }
+
+                        btn.className = baseClass;
+                        btn.innerHTML = `
+                            <span>${day}</span>
+                            ${hasItems && !isPassed ? '<span class="mt-0.5 w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_#34d399]"></span>' : ''}
+                        `;
+
+                        btn.addEventListener('click', () => {
+                            onSelectDate(dateStr);
+                        });
+
+                        gridEl.appendChild(btn);
+                    }
+                }
+
+                // ==========================================
+                // 8. Detail Renderers for Modules 01 - 06
+                // ==========================================
                 function renderLeaveDetails(dateStr) {
-                    selectedLeaveDate = dateStr;
                     const headingEl = document.getElementById('selectedDateHeading');
                     const badgeEl = document.getElementById('leaveCountBadge');
                     const contentEl = document.getElementById('leaveDetailContent');
                     if (!headingEl || !badgeEl || !contentEl) return;
 
-                    const t = translations[currentLang];
+                    const todayStr = getMacauTodayStr();
                     headingEl.textContent = dateStr;
-                    const list = officialLeaveData[dateStr] || [];
 
-                    if (list.length === 0) {
+                    if (dateStr < todayStr) {
                         badgeEl.classList.add('hidden');
-                        contentEl.className = 'mt-3 flex-1 min-h-0 overflow-y-auto pr-1 flex flex-col items-center justify-center text-center py-6';
+                        contentEl.className = 'mt-3 flex-1 min-h-0 overflow-y-auto pr-1 flex flex-col justify-center';
                         contentEl.innerHTML = `
-                            <div class="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/25 flex items-center justify-center text-amber-400/75 mb-3">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
+                            <div class="rounded-2xl bg-white/[0.04] border border-white/10 p-6 text-center">
+                                <p class="text-sm sm:text-base text-gray-400">${translations[currentLang].passedDateMsg}</p>
                             </div>
-                            <p class="text-base sm:text-lg font-bold text-amber-100">${t.noLeaveToday}</p>
-                            <p class="text-xs sm:text-sm text-amber-200/60 mt-1 max-w-xs">${t.noLeaveSub}</p>
                         `;
-                    } else {
-                        badgeEl.classList.remove('hidden');
-                        badgeEl.textContent = currentLang === 'zh' ? `${list.length} ${t.leaveCountSuffix}` : `${list.length} ${t.leaveCountSuffix}`;
-                        contentEl.className = 'mt-3 flex-1 min-h-0 overflow-y-auto pr-1 flex flex-col justify-start';
+                        return;
+                    }
 
-                        const cardsHtml = list
-                            .map((student, index) => {
-                                const numStr = String(index + 1).padStart(2, '0');
-                                const classNoStr = String(student.classNo).padStart(2, '0');
-                                return `
-                                    <div class="flex items-center justify-between rounded-2xl bg-[#120703]/85 border border-amber-500/25 hover:border-amber-400/55 px-3.5 py-2.5 transition-colors">
-                                        <div class="flex items-center gap-2.5">
-                                            <span class="font-mono text-xs text-amber-400/70">${numStr}</span>
-                                            <span class="text-sm sm:text-base font-bold text-amber-50">${student.name}</span>
-                                        </div>
-                                        <span class="rounded-lg bg-amber-500/15 border border-amber-400/35 px-2.5 py-0.5 font-mono text-xs sm:text-sm font-semibold text-amber-300">
-                                            (${classNoStr})
-                                        </span>
+                    const list = officialLeaveData[dateStr];
+                    if (!list || list.length === 0) {
+                        badgeEl.classList.add('hidden');
+                        contentEl.className = 'mt-3 flex-1 min-h-0 overflow-y-auto pr-1 flex flex-col justify-center';
+                        contentEl.innerHTML = `
+                            <div class="rounded-2xl bg-[#120703]/65 border border-amber-500/20 p-6 text-center">
+                                <p class="text-sm sm:text-base text-amber-200/75">${translations[currentLang].noLeaveMsg}</p>
+                            </div>
+                        `;
+                        return;
+                    }
+
+                    badgeEl.classList.remove('hidden');
+                    badgeEl.textContent = `${list.length} ${translations[currentLang].peopleUnit}`;
+
+                    // Use 10-slot grid (2 columns x 5 rows) when <= 10 people so 1 or 2 names stay in the first slot(s) without stretching
+                    if (list.length <= 10) {
+                        contentEl.className = 'mt-3 flex-1 min-h-0 overflow-y-auto pr-1 grid grid-cols-2 grid-rows-5 gap-2 sm:gap-2.5';
+                        let html = '';
+                        for (let i = 0; i < 10; i++) {
+                            if (i < list.length) {
+                                html += `
+                                    <div class="rounded-2xl bg-[#120703]/80 border border-amber-500/25 px-3 py-2 flex items-center justify-between gap-2">
+                                        <span class="text-xs sm:text-sm font-medium text-amber-50 truncate">${list[i]}</span>
                                     </div>
                                 `;
-                            })
-                            .join('');
-
-                        contentEl.innerHTML = `<div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 content-start">${cardsHtml}</div>`;
-                    }
-                }
-
-                function renderLeaveCalendar() {
-                    const gridEl = document.getElementById('leaveCalendarGrid');
-                    const weekdaysEl = document.getElementById('calendarWeekdays');
-                    const monthTitleEl = document.getElementById('leaveCalendarMonthTitle');
-                    if (!gridEl) return;
-
-                    if (monthTitleEl) {
-                        monthTitleEl.textContent =
-                            currentLang === 'zh'
-                                ? `2026年 ${leaveCalendarMonth}月`
-                                : leaveCalendarMonth === 11
-                                ? 'November 2026'
-                                : 'December 2026';
-                    }
-
-                    if (weekdaysEl) {
-                        const labels = currentLang === 'zh' ? ['日', '一', '二', '三', '四', '五', '六'] : ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
-                        weekdaysEl.innerHTML = labels.map((d) => `<span>${d}</span>`).join('');
-                    }
-
-                    const firstDayOffset = leaveCalendarMonth === 11 ? 0 : 2;
-                    const daysInMonth = leaveCalendarMonth === 11 ? 30 : 31;
-                    const monthStr = String(leaveCalendarMonth).padStart(2, '0');
-                    gridEl.innerHTML = '';
-
-                    for (let blank = 0; blank < firstDayOffset; blank++) {
-                        const emptyCell = document.createElement('div');
-                        emptyCell.className = 'min-h-[42px] sm:min-h-[50px]';
-                        gridEl.appendChild(emptyCell);
-                    }
-
-                    for (let day = 1; day <= daysInMonth; day++) {
-                        const dayStr = String(day).padStart(2, '0');
-                        const dateStr = `2026-${monthStr}-${dayStr}`;
-                        const isPassed = dateStr < TODAY_DATE_STR;
-                        const isToday = dateStr === TODAY_DATE_STR;
-                        const isSelected = dateStr === selectedLeaveDate;
-                        const hasLeave = Boolean(officialLeaveData[dateStr] && officialLeaveData[dateStr].length > 0);
-
-                        const dayBtn = document.createElement('button');
-                        dayBtn.type = 'button';
-
-                        let cellClasses = 'relative min-h-[42px] sm:min-h-[50px] rounded-xl sm:rounded-2xl border flex flex-col items-center justify-center transition-all cursor-pointer select-none ';
-                        if (isSelected) {
-                            cellClasses += 'bg-amber-500/30 border-amber-400 text-amber-50 shadow-[0_0_18px_rgba(245,158,11,0.35)] scale-[1.03] ';
-                        } else if (isToday) {
-                            cellClasses += 'bg-amber-500/15 border-amber-400/75 text-amber-100 hover:bg-amber-500/25 ';
-                        } else if (isPassed) {
-                            cellClasses += 'bg-white/[0.04] border-white/10 text-gray-500 hover:bg-white/[0.08] hover:text-gray-300 ';
-                        } else {
-                            cellClasses += 'bg-[#120703]/70 border-amber-500/20 text-amber-100 hover:bg-amber-500/15 hover:border-amber-400/60 ';
+                            } else {
+                                html += `<div class="rounded-2xl border border-transparent"></div>`;
+                            }
                         }
-
-                        dayBtn.className = cellClasses;
-                        dayBtn.innerHTML = `
-                            <span class="font-mono text-xs sm:text-base font-bold">${day}</span>
-                            ${hasLeave ? '<span class="mt-1 w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_#34d399]"></span>' : '<span class="mt-1 w-1.5 h-1.5"></span>'}
-                        `;
-
-                        dayBtn.addEventListener('click', () => {
-                            renderLeaveDetails(dateStr);
-                            renderLeaveCalendar();
-                        });
-
-                        gridEl.appendChild(dayBtn);
-                    }
-                }
-
-                // ==========================================
-                // 3. Homework Data & Calendar (02. 功課)
-                // ==========================================
-                const homeworkData = {
-                    '2026-12-02': [
-                        {
-                            group: '吳sir半班',
-                            tasks: [
-                                '科學學習平台: 做第三課 -- 質量、重力、合力與二力平衡的預習',
-                                '打字 (Week 12)',
-                                '科學Logbook (關於第二課 -- 力的種類、表示與作用效果)'
-                            ]
-                        },
-                        {
-                            group: '李sir半班',
-                            tasks: [
-                                '科學學習平台: 做第三課 -- 質量、重力、合力與二力平衡的預習',
-                                'Onshape'
-                            ]
-                        }
-                    ]
-                };
-
-                let selectedHwDate = TODAY_DATE_STR;
-                let hwCalendarMonth = 11;
-
-                function setHwCalendarMonth(month) {
-                    hwCalendarMonth = month;
-                    const month11Btn = document.getElementById('hwMonth11Btn');
-                    const month12Btn = document.getElementById('hwMonth12Btn');
-                    const prevBtn = document.getElementById('hwPrevMonthBtn');
-                    const nextBtn = document.getElementById('hwNextMonthBtn');
-
-                    const activeCls = 'rounded-full px-3 py-1 text-xs font-bold bg-amber-500 text-stone-950 shadow-[0_0_10px_rgba(245,158,11,0.35)] transition-all cursor-pointer';
-                    const inactiveCls = 'rounded-full px-3 py-1 text-xs font-medium text-amber-200/75 hover:text-amber-50 transition-all cursor-pointer';
-
-                    if (month === 11) {
-                        if (month11Btn) month11Btn.className = activeCls;
-                        if (month12Btn) month12Btn.className = inactiveCls;
-                        if (prevBtn) prevBtn.disabled = true;
-                        if (nextBtn) nextBtn.disabled = false;
+                        contentEl.innerHTML = html;
                     } else {
-                        if (month11Btn) month11Btn.className = inactiveCls;
-                        if (month12Btn) month12Btn.className = activeCls;
-                        if (prevBtn) prevBtn.disabled = false;
-                        if (nextBtn) nextBtn.disabled = true;
+                        contentEl.className = 'mt-3 flex-1 min-h-0 overflow-y-auto pr-1 grid grid-cols-2 gap-2 sm:gap-2.5 content-start';
+                        contentEl.innerHTML = list.map((entry) => `
+                            <div class="rounded-2xl bg-[#120703]/80 border border-amber-500/25 px-3 py-2 flex items-center justify-between gap-2">
+                                <span class="text-xs sm:text-sm font-medium text-amber-50 truncate">${entry}</span>
+                            </div>
+                        `).join('');
                     }
-                    renderHwCalendar();
                 }
 
-                function renderHwDetails(dateStr) {
-                    selectedHwDate = dateStr;
-                    const headingEl = document.getElementById('hwSelectedDateHeading');
-                    const badgeEl = document.getElementById('hwCountBadge');
-                    const contentEl = document.getElementById('hwDetailContent');
+                function renderGenericItemDetails(dateStr, dataMap, headingId, badgeId, contentId, emptyKey) {
+                    const headingEl = document.getElementById(headingId);
+                    const badgeEl = document.getElementById(badgeId);
+                    const contentEl = document.getElementById(contentId);
                     if (!headingEl || !badgeEl || !contentEl) return;
 
-                    const t = translations[currentLang];
+                    const todayStr = getMacauTodayStr();
                     headingEl.textContent = dateStr;
-                    const groups = homeworkData[dateStr] || [];
 
-                    if (groups.length === 0) {
+                    if (dateStr < todayStr) {
                         badgeEl.classList.add('hidden');
-                        contentEl.className = 'mt-3 flex-1 min-h-0 overflow-y-auto pr-1 flex flex-col items-center justify-center text-center py-6';
+                        contentEl.className = 'mt-3 flex-1 min-h-0 overflow-y-auto pr-1 flex flex-col justify-center';
                         contentEl.innerHTML = `
-                            <div class="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/25 flex items-center justify-center text-amber-400/75 mb-3">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                                </svg>
+                            <div class="rounded-2xl bg-white/[0.04] border border-white/10 p-6 text-center">
+                                <p class="text-sm sm:text-base text-gray-400">${translations[currentLang].passedDateMsg}</p>
                             </div>
-                            <p class="text-base sm:text-lg font-bold text-amber-100">${t.noHwToday}</p>
-                            <p class="text-xs sm:text-sm text-amber-200/60 mt-1 max-w-xs">${t.noHwSub}</p>
                         `;
-                    } else {
-                        badgeEl.classList.remove('hidden');
-                        badgeEl.textContent = `${groups.length} ${t.hwGroupSuffix}`;
-                        contentEl.className = 'mt-3 flex-1 min-h-0 overflow-y-auto pr-1 flex flex-col justify-start';
-
-                        const cardsHtml = groups
-                            .map((item) => {
-                                const tasksHtml = item.tasks
-                                    .map((taskText, idx) => {
-                                        const numStr = String(idx + 1).padStart(2, '0');
-                                        return `
-                                            <li class="flex items-start gap-2.5 text-xs sm:text-sm text-amber-50/95 leading-relaxed">
-                                                <span class="font-mono text-xs font-bold text-amber-400 mt-0.5">${numStr}.</span>
-                                                <span>${taskText}</span>
-                                            </li>
-                                        `;
-                                    })
-                                    .join('');
-
-                                return `
-                                    <div class="rounded-2xl bg-[#120703]/85 border border-amber-500/25 hover:border-amber-400/55 p-3.5 sm:p-4 transition-colors">
-                                        <div class="flex items-center gap-2 pb-2 mb-2.5 border-b border-amber-500/20">
-                                            <span class="w-2 h-2 rounded-full bg-amber-400 shadow-[0_0_8px_#fbbf24]"></span>
-                                            <h4 class="text-sm sm:text-base font-bold text-amber-300 tracking-wide">${item.group}</h4>
-                                        </div>
-                                        <ul class="space-y-2">${tasksHtml}</ul>
-                                    </div>
-                                `;
-                            })
-                            .join('');
-
-                        contentEl.innerHTML = `<div class="space-y-3">${cardsHtml}</div>`;
-                    }
-                }
-
-                function renderHwCalendar() {
-                    const gridEl = document.getElementById('hwCalendarGrid');
-                    const weekdaysEl = document.getElementById('hwCalendarWeekdays');
-                    const monthTitleEl = document.getElementById('hwCalendarMonthTitle');
-                    if (!gridEl) return;
-
-                    if (monthTitleEl) {
-                        monthTitleEl.textContent =
-                            currentLang === 'zh'
-                                ? `2026年 ${hwCalendarMonth}月`
-                                : hwCalendarMonth === 11
-                                ? 'November 2026'
-                                : 'December 2026';
+                        return;
                     }
 
-                    if (weekdaysEl) {
-                        const labels = currentLang === 'zh' ? ['日', '一', '二', '三', '四', '五', '六'] : ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
-                        weekdaysEl.innerHTML = labels.map((d) => `<span>${d}</span>`).join('');
-                    }
-
-                    const firstDayOffset = hwCalendarMonth === 11 ? 0 : 2;
-                    const daysInMonth = hwCalendarMonth === 11 ? 30 : 31;
-                    const monthStr = String(hwCalendarMonth).padStart(2, '0');
-                    gridEl.innerHTML = '';
-
-                    for (let blank = 0; blank < firstDayOffset; blank++) {
-                        const emptyCell = document.createElement('div');
-                        emptyCell.className = 'min-h-[42px] sm:min-h-[50px]';
-                        gridEl.appendChild(emptyCell);
-                    }
-
-                    for (let day = 1; day <= daysInMonth; day++) {
-                        const dayStr = String(day).padStart(2, '0');
-                        const dateStr = `2026-${monthStr}-${dayStr}`;
-                        const isPassed = dateStr < TODAY_DATE_STR;
-                        const isToday = dateStr === TODAY_DATE_STR;
-                        const isSelected = dateStr === selectedHwDate;
-                        const hasHw = Boolean(homeworkData[dateStr] && homeworkData[dateStr].length > 0);
-
-                        const dayBtn = document.createElement('button');
-                        dayBtn.type = 'button';
-
-                        let cellClasses = 'relative min-h-[42px] sm:min-h-[50px] rounded-xl sm:rounded-2xl border flex flex-col items-center justify-center transition-all cursor-pointer select-none ';
-                        if (isSelected) {
-                            cellClasses += 'bg-amber-500/30 border-amber-400 text-amber-50 shadow-[0_0_18px_rgba(245,158,11,0.35)] scale-[1.03] ';
-                        } else if (isToday) {
-                            cellClasses += 'bg-amber-500/15 border-amber-400/75 text-amber-100 hover:bg-amber-500/25 ';
-                        } else if (isPassed) {
-                            cellClasses += 'bg-white/[0.04] border-white/10 text-gray-500 hover:bg-white/[0.08] hover:text-gray-300 ';
-                        } else {
-                            cellClasses += 'bg-[#120703]/70 border-amber-500/20 text-amber-100 hover:bg-amber-500/15 hover:border-amber-400/60 ';
-                        }
-
-                        dayBtn.className = cellClasses;
-                        dayBtn.innerHTML = `
-                            <span class="font-mono text-xs sm:text-base font-bold">${day}</span>
-                            ${hasHw ? '<span class="mt-1 w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_#34d399]"></span>' : '<span class="mt-1 w-1.5 h-1.5"></span>'}
-                        `;
-
-                        dayBtn.addEventListener('click', () => {
-                            renderHwDetails(dateStr);
-                            renderHwCalendar();
-                        });
-
-                        gridEl.appendChild(dayBtn);
-                    }
-                }
-
-                // ==========================================
-                // 4. Schedule / Substitution Data (03)
-                // ==========================================
-                const scheduleChangeData = {
-                    '2026-11-26': [
-                        { period: '第三堂', change: '幾何堂 → 代數堂' }
-                    ],
-                    '2026-11-27': [
-                        { period: '第五堂', change: '代數堂 → 幾何堂' }
-                    ],
-                    '2026-11-30': [
-                        { period: '第四堂', change: '品德公民 → 代數堂' },
-                        { period: '代課安排', change: '第四、五堂由吳瀅老師代課', isSub: true }
-                    ],
-                    '2026-12-03': [
-                        { period: '第四堂', change: '代數堂 → 中文堂' }
-                    ],
-                    '2026-12-04': [
-                        { period: '第五堂', change: '代數堂 → 地理堂' }
-                    ],
-                    '2026-12-05': [
-                        { period: '第三堂', change: '中文堂 → 數學堂' },
-                        { period: '第四堂', change: '地理堂 → 代數堂' }
-                    ]
-                };
-
-                let selectedScDate = TODAY_DATE_STR;
-                let scCalendarMonth = 11;
-
-                function setScCalendarMonth(month) {
-                    scCalendarMonth = month;
-                    const month11Btn = document.getElementById('scMonth11Btn');
-                    const month12Btn = document.getElementById('scMonth12Btn');
-                    const prevBtn = document.getElementById('scPrevMonthBtn');
-                    const nextBtn = document.getElementById('scNextMonthBtn');
-
-                    const activeCls = 'rounded-full px-3 py-1 text-xs font-bold bg-amber-500 text-stone-950 shadow-[0_0_10px_rgba(245,158,11,0.35)] transition-all cursor-pointer';
-                    const inactiveCls = 'rounded-full px-3 py-1 text-xs font-medium text-amber-200/75 hover:text-amber-50 transition-all cursor-pointer';
-
-                    if (month === 11) {
-                        if (month11Btn) month11Btn.className = activeCls;
-                        if (month12Btn) month12Btn.className = inactiveCls;
-                        if (prevBtn) prevBtn.disabled = true;
-                        if (nextBtn) nextBtn.disabled = false;
-                    } else {
-                        if (month11Btn) month11Btn.className = inactiveCls;
-                        if (month12Btn) month12Btn.className = activeCls;
-                        if (prevBtn) prevBtn.disabled = false;
-                        if (nextBtn) nextBtn.disabled = true;
-                    }
-                    renderScCalendar();
-                }
-
-                function renderScDetails(dateStr) {
-                    selectedScDate = dateStr;
-                    const headingEl = document.getElementById('scSelectedDateHeading');
-                    const badgeEl = document.getElementById('scCountBadge');
-                    const contentEl = document.getElementById('scDetailContent');
-                    if (!headingEl || !badgeEl || !contentEl) return;
-
-                    const t = translations[currentLang];
-                    headingEl.textContent = dateStr;
-                    const items = scheduleChangeData[dateStr] || [];
-
-                    if (items.length === 0) {
+                    const items = dataMap[dateStr];
+                    if (!items || items.length === 0) {
                         badgeEl.classList.add('hidden');
-                        contentEl.className = 'mt-3 flex-1 min-h-0 overflow-y-auto pr-1 flex flex-col items-center justify-center text-center py-6';
+                        contentEl.className = 'mt-3 flex-1 min-h-0 overflow-y-auto pr-1 flex flex-col justify-center';
                         contentEl.innerHTML = `
-                            <div class="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/25 flex items-center justify-center text-amber-400/75 mb-3">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
-                                </svg>
+                            <div class="rounded-2xl bg-[#120703]/65 border border-amber-500/20 p-6 text-center">
+                                <p class="text-sm sm:text-base text-amber-200/75">${translations[currentLang][emptyKey]}</p>
                             </div>
-                            <p class="text-base sm:text-lg font-bold text-amber-100">${t.noScToday}</p>
-                            <p class="text-xs sm:text-sm text-amber-200/60 mt-1 max-w-xs">${t.noScSub}</p>
                         `;
-                    } else {
-                        badgeEl.classList.remove('hidden');
-                        badgeEl.textContent = `${items.length} ${t.scCountSuffix}`;
-                        contentEl.className = 'mt-3 flex-1 min-h-0 overflow-y-auto pr-1 flex flex-col justify-start';
-
-                        const cardsHtml = items
-                            .map((item, idx) => {
-                                const numStr = String(idx + 1).padStart(2, '0');
-                                const badgeClass = item.isSub
-                                    ? 'bg-emerald-500/15 border-emerald-400/40 text-emerald-300'
-                                    : 'bg-amber-500/15 border-amber-400/35 text-amber-300';
-                                return `
-                                    <div class="rounded-2xl bg-[#120703]/85 border border-amber-500/25 hover:border-amber-400/55 p-3.5 sm:p-4 transition-colors">
-                                        <div class="flex items-center justify-between gap-2 mb-2">
-                                            <span class="rounded-lg border px-2.5 py-0.5 text-xs sm:text-sm font-bold ${badgeClass}">
-                                                ${item.period}
-                                            </span>
-                                            <span class="font-mono text-xs text-amber-400/60">#${numStr}</span>
-                                        </div>
-                                        <p class="text-sm sm:text-base font-bold text-amber-50 tracking-wide">${item.change}</p>
-                                    </div>
-                                `;
-                            })
-                            .join('');
-
-                        contentEl.innerHTML = `<div class="space-y-3">${cardsHtml}</div>`;
+                        return;
                     }
+
+                    badgeEl.classList.remove('hidden');
+                    badgeEl.textContent = `${items.length} ${translations[currentLang].itemsUnit}`;
+                    contentEl.className = 'mt-3 flex-1 min-h-0 overflow-y-auto pr-1 space-y-2.5';
+                    contentEl.innerHTML = items.map((item, idx) => `
+                        <div class="rounded-2xl bg-[#120703]/85 border border-amber-500/30 p-3.5 sm:p-4 flex items-center gap-3">
+                            <span class="font-mono text-xs font-bold text-amber-400">0${idx + 1}</span>
+                            <span class="text-sm sm:text-base font-medium text-amber-50">${item}</span>
+                        </div>
+                    `).join('');
                 }
-
-                function renderScCalendar() {
-                    const gridEl = document.getElementById('scCalendarGrid');
-                    const weekdaysEl = document.getElementById('scCalendarWeekdays');
-                    const monthTitleEl = document.getElementById('scCalendarMonthTitle');
-                    if (!gridEl) return;
-
-                    if (monthTitleEl) {
-                        monthTitleEl.textContent =
-                            currentLang === 'zh'
-                                ? `2026年 ${scCalendarMonth}月`
-                                : scCalendarMonth === 11
-                                ? 'November 2026'
-                                : 'December 2026';
-                    }
-
-                    if (weekdaysEl) {
-                        const labels = currentLang === 'zh' ? ['日', '一', '二', '三', '四', '五', '六'] : ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
-                        weekdaysEl.innerHTML = labels.map((d) => `<span>${d}</span>`).join('');
-                    }
-
-                    const firstDayOffset = scCalendarMonth === 11 ? 0 : 2;
-                    const daysInMonth = scCalendarMonth === 11 ? 30 : 31;
-                    const monthStr = String(scCalendarMonth).padStart(2, '0');
-                    gridEl.innerHTML = '';
-
-                    for (let blank = 0; blank < firstDayOffset; blank++) {
-                        const emptyCell = document.createElement('div');
-                        emptyCell.className = 'min-h-[42px] sm:min-h-[50px]';
-                        gridEl.appendChild(emptyCell);
-                    }
-
-                    for (let day = 1; day <= daysInMonth; day++) {
-                        const dayStr = String(day).padStart(2, '0');
-                        const dateStr = `2026-${monthStr}-${dayStr}`;
-                        const isPassed = dateStr < TODAY_DATE_STR;
-                        const isToday = dateStr === TODAY_DATE_STR;
-                        const isSelected = dateStr === selectedScDate;
-                        const hasSc = Boolean(scheduleChangeData[dateStr] && scheduleChangeData[dateStr].length > 0);
-
-                        const dayBtn = document.createElement('button');
-                        dayBtn.type = 'button';
-
-                        let cellClasses = 'relative min-h-[42px] sm:min-h-[50px] rounded-xl sm:rounded-2xl border flex flex-col items-center justify-center transition-all cursor-pointer select-none ';
-                        if (isSelected) {
-                            cellClasses += 'bg-amber-500/30 border-amber-400 text-amber-50 shadow-[0_0_18px_rgba(245,158,11,0.35)] scale-[1.03] ';
-                        } else if (isToday) {
-                            cellClasses += 'bg-amber-500/15 border-amber-400/75 text-amber-100 hover:bg-amber-500/25 ';
-                        } else if (isPassed) {
-                            cellClasses += 'bg-white/[0.04] border-white/10 text-gray-500 hover:bg-white/[0.08] hover:text-gray-300 ';
-                        } else {
-                            cellClasses += 'bg-[#120703]/70 border-amber-500/20 text-amber-100 hover:bg-amber-500/15 hover:border-amber-400/60 ';
-                        }
-
-                        dayBtn.className = cellClasses;
-                        dayBtn.innerHTML = `
-                            <span class="font-mono text-xs sm:text-base font-bold">${day}</span>
-                            ${hasSc ? '<span class="mt-1 w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_#34d399]"></span>' : '<span class="mt-1 w-1.5 h-1.5"></span>'}
-                        `;
-
-                        dayBtn.addEventListener('click', () => {
-                            renderScDetails(dateStr);
-                            renderScCalendar();
-                        });
-
-                        gridEl.appendChild(dayBtn);
-                    }
-                }
-
-                // ==========================================
-                // 5. Tests & Quizzes Data & Calendar (04)
-                // ==========================================
-                const testScheduleData = {
-                    '2026-11-23': [
-                        {
-                            period: '第一堂',
-                            subject: '數學素質',
-                            details: []
-                        }
-                    ],
-                    '2026-11-24': [
-                        {
-                            period: '第三堂',
-                            subject: '中文閱讀測驗',
-                            details: []
-                        }
-                    ],
-                    '2026-11-26': [
-                        {
-                            period: '第四堂',
-                            subject: '數學小測',
-                            details: [
-                                '代數: 9.1 ~ 9.2',
-                                '幾何: 1.6'
-                            ]
-                        },
-                        {
-                            period: '第六堂',
-                            subject: 'English Writing Test',
-                            details: [
-                                'Format: E-mail'
-                            ]
-                        }
-                    ],
-                    '2026-11-28': [
-                        {
-                            period: '第五堂',
-                            subject: 'English Graded Reading',
-                            details: []
-                        }
-                    ],
-                    '2026-12-04': [
-                        {
-                            period: '第七堂 (預計, 可第二、三堂)',
-                            subject: 'English Dictation',
-                            details: [
-                                '1. OEF Unit 4 Text 1 Para. 2-5',
-                                '2. One Extra Passage (See the attachment on eClass)'
-                            ]
-                        }
-                    ],
-                    '2026-12-07': [
-                        {
-                            period: '第一堂',
-                            subject: '數學大測',
-                            details: [
-                                '代數: 9.1 ~ 9.3 (預計)',
-                                '幾何: 1.6 ~ 1.8 (預計)'
-                            ]
-                        }
-                    ],
-                    '2026-12-08': [
-                        {
-                            period: '第三堂',
-                            subject: '中文大測',
-                            details: [
-                                '1. 詳讀：《孔乙己》、《感遇》、《西塞山懷古》；自讀：《從軍行》、《惡蚊》、《遊山西村》',
-                                '2. 默寫：《感遇》、《西塞山懷古》、《遊山西村》、名句（1-8）',
-                                '3. 成語：常見近義成語辨析(54-57)、重點成語(98-106)',
-                                '4. 名句：1-8',
-                                '5. 語基：是字句及存現句',
-                                '6. 中國文學常識、澳門文化常識',
-                                '7. 文言文閱讀理解',
-                                '8. 材料分析'
-                            ]
-                        }
-                    ],
-                    '2026-12-11': [
-                        {
-                            period: '第四堂',
-                            subject: 'English R+S presentation',
-                            details: [
-                                'A Christmas Carol (all chapters)'
-                            ]
-                        }
-                    ]
-                };
-
-                let selectedTestDate = TODAY_DATE_STR;
-                let testCalendarMonth = 11;
-
-                function setTestCalendarMonth(month) {
-                    testCalendarMonth = month;
-                    const month11Btn = document.getElementById('testMonth11Btn');
-                    const month12Btn = document.getElementById('testMonth12Btn');
-                    const prevBtn = document.getElementById('testPrevMonthBtn');
-                    const nextBtn = document.getElementById('testNextMonthBtn');
-
-                    const activeCls = 'rounded-full px-3 py-1 text-xs font-bold bg-amber-500 text-stone-950 shadow-[0_0_10px_rgba(245,158,11,0.35)] transition-all cursor-pointer';
-                    const inactiveCls = 'rounded-full px-3 py-1 text-xs font-medium text-amber-200/75 hover:text-amber-50 transition-all cursor-pointer';
-
-                    if (month === 11) {
-                        if (month11Btn) month11Btn.className = activeCls;
-                        if (month12Btn) month12Btn.className = inactiveCls;
-                        if (prevBtn) prevBtn.disabled = true;
-                        if (nextBtn) nextBtn.disabled = false;
-                    } else {
-                        if (month11Btn) month11Btn.className = inactiveCls;
-                        if (month12Btn) month12Btn.className = activeCls;
-                        if (prevBtn) prevBtn.disabled = false;
-                        if (nextBtn) nextBtn.disabled = true;
-                    }
-                    renderTestCalendar();
-                }
-
-                function renderTestDetails(dateStr) {
-                    selectedTestDate = dateStr;
-                    const headingEl = document.getElementById('testSelectedDateHeading');
-                    const badgeEl = document.getElementById('testCountBadge');
-                    const contentEl = document.getElementById('testDetailContent');
-                    if (!headingEl || !badgeEl || !contentEl) return;
-
-                    const t = translations[currentLang];
-                    headingEl.textContent = dateStr;
-                    const tests = testScheduleData[dateStr] || [];
-
-                    if (tests.length === 0) {
-                        badgeEl.classList.add('hidden');
-                        contentEl.className = 'mt-3 flex-1 min-h-0 overflow-y-auto pr-1 flex flex-col items-center justify-center text-center py-6';
-                        contentEl.innerHTML = `
-                            <div class="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/25 flex items-center justify-center text-amber-400/75 mb-3">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-                                </svg>
-                            </div>
-                            <p class="text-base sm:text-lg font-bold text-amber-100">${t.noTestToday}</p>
-                            <p class="text-xs sm:text-sm text-amber-200/60 mt-1 max-w-xs">${t.noTestSub}</p>
-                        `;
-                    } else {
-                        badgeEl.classList.remove('hidden');
-                        badgeEl.textContent = `${tests.length} ${t.testCountSuffix}`;
-                        contentEl.className = 'mt-3 flex-1 min-h-0 overflow-y-auto pr-1 flex flex-col justify-start';
-
-                        const cardsHtml = tests
-                            .map((item, idx) => {
-                                const numStr = String(idx + 1).padStart(2, '0');
-                                const detailsHtml = item.details && item.details.length > 0
-                                    ? `<ul class="mt-2.5 pt-2.5 border-t border-amber-500/15 space-y-1.5 text-xs sm:text-sm text-amber-100/90 leading-relaxed">
-                                        ${item.details.map((line) => `<li class="flex items-start gap-2"><span class="text-amber-400 mt-0.5">•</span><span>${line}</span></li>`).join('')}
-                                       </ul>`
-                                    : '';
-
-                                return `
-                                    <div class="rounded-2xl bg-[#120703]/85 border border-amber-500/25 hover:border-amber-400/55 p-3.5 sm:p-4 transition-colors">
-                                        <div class="flex flex-wrap items-center justify-between gap-2 mb-1.5">
-                                            <span class="rounded-lg bg-amber-500/15 border border-amber-400/35 px-2.5 py-0.5 text-xs sm:text-sm font-bold text-amber-300">
-                                                ${item.period}
-                                            </span>
-                                            <span class="font-mono text-xs text-amber-400/60">#${numStr}</span>
-                                        </div>
-                                        <h4 class="text-base sm:text-lg font-bold text-amber-50 tracking-wide">${item.subject}</h4>
-                                        ${detailsHtml}
-                                    </div>
-                                `;
-                            })
-                            .join('');
-
-                        contentEl.innerHTML = `<div class="space-y-3">${cardsHtml}</div>`;
-                    }
-                }
-
-                function renderTestCalendar() {
-                    const gridEl = document.getElementById('testCalendarGrid');
-                    const weekdaysEl = document.getElementById('testCalendarWeekdays');
-                    const monthTitleEl = document.getElementById('testCalendarMonthTitle');
-                    if (!gridEl) return;
-
-                    if (monthTitleEl) {
-                        monthTitleEl.textContent =
-                            currentLang === 'zh'
-                                ? `2026年 ${testCalendarMonth}月`
-                                : testCalendarMonth === 11
-                                ? 'November 2026'
-                                : 'December 2026';
-                    }
-
-                    if (weekdaysEl) {
-                        const labels = currentLang === 'zh' ? ['日', '一', '二', '三', '四', '五', '六'] : ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
-                        weekdaysEl.innerHTML = labels.map((d) => `<span>${d}</span>`).join('');
-                    }
-
-                    const firstDayOffset = testCalendarMonth === 11 ? 0 : 2;
-                    const daysInMonth = testCalendarMonth === 11 ? 30 : 31;
-                    const monthStr = String(testCalendarMonth).padStart(2, '0');
-                    gridEl.innerHTML = '';
-
-                    for (let blank = 0; blank < firstDayOffset; blank++) {
-                        const emptyCell = document.createElement('div');
-                        emptyCell.className = 'min-h-[42px] sm:min-h-[50px]';
-                        gridEl.appendChild(emptyCell);
-                    }
-
-                    for (let day = 1; day <= daysInMonth; day++) {
-                        const dayStr = String(day).padStart(2, '0');
-                        const dateStr = `2026-${monthStr}-${dayStr}`;
-                        const isPassed = dateStr < TODAY_DATE_STR;
-                        const isToday = dateStr === TODAY_DATE_STR;
-                        const isSelected = dateStr === selectedTestDate;
-                        const hasTest = Boolean(testScheduleData[dateStr] && testScheduleData[dateStr].length > 0);
-
-                        const dayBtn = document.createElement('button');
-                        dayBtn.type = 'button';
-
-                        let cellClasses = 'relative min-h-[42px] sm:min-h-[50px] rounded-xl sm:rounded-2xl border flex flex-col items-center justify-center transition-all cursor-pointer select-none ';
-                        if (isSelected) {
-                            cellClasses += 'bg-amber-500/30 border-amber-400 text-amber-50 shadow-[0_0_18px_rgba(245,158,11,0.35)] scale-[1.03] ';
-                        } else if (isToday) {
-                            cellClasses += 'bg-amber-500/15 border-amber-400/75 text-amber-100 hover:bg-amber-500/25 ';
-                        } else if (isPassed) {
-                            cellClasses += 'bg-white/[0.04] border-white/10 text-gray-500 hover:bg-white/[0.08] hover:text-gray-300 ';
-                        } else {
-                            cellClasses += 'bg-[#120703]/70 border-amber-500/20 text-amber-100 hover:bg-amber-500/15 hover:border-amber-400/60 ';
-                        }
-
-                        dayBtn.className = cellClasses;
-                        dayBtn.innerHTML = `
-                            <span class="font-mono text-xs sm:text-base font-bold">${day}</span>
-                            ${hasTest ? '<span class="mt-1 w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_#34d399]"></span>' : '<span class="mt-1 w-1.5 h-1.5"></span>'}
-                        `;
-
-                        dayBtn.addEventListener('click', () => {
-                            renderTestDetails(dateStr);
-                            renderTestCalendar();
-                        });
-
-                        gridEl.appendChild(dayBtn);
-                    }
-                }
-
-                // ==========================================
-                // 6. School Activities Data & Calendar (05)
-                // ==========================================
-                const schoolActivityData = {
-                    '2026-11-27': [
-                        { time: '10:30 ~ 12:15', title: '參觀美術館' }
-                    ],
-                    '2026-11-30': [
-                        { time: '09:50 ~ 10:30', title: '遠足前會議' }
-                    ],
-                    '2026-12-12': [
-                        { time: '上午', title: '遠足' },
-                        { time: '下午', title: 'BBQ' }
-                    ],
-                    '2026-12-19': [
-                        { time: '上午', title: '聖誕聯歡' },
-                        { time: '下午', title: '聖挺攤位' }
-                    ]
-                };
-
-                // Populate 2026-12-20 ~ 2027-01-03: 放假
-                for (let d = 20; d <= 31; d++) {
-                    schoolActivityData[`2026-12-${String(d).padStart(2, '0')}`] = [
-                        { time: '全天 / 假期', title: '放假', isHoliday: true }
-                    ];
-                }
-                for (let d = 1; d <= 3; d++) {
-                    schoolActivityData[`2027-01-${String(d).padStart(2, '0')}`] = [
-                        { time: '全天 / 假期', title: '放假', isHoliday: true }
-                    ];
-                }
-
-                // Populate 2027-01-18 ~ 2027-01-23: 初二國防教育營
-                for (let d = 18; d <= 23; d++) {
-                    schoolActivityData[`2027-01-${String(d).padStart(2, '0')}`] = [
-                        { time: '全天活動', title: '初二國防教育營', isCamp: true }
-                    ];
-                }
-
-                const actMonthList = [
-                    { year: 2026, month: 11, firstDayOffset: 0, daysInMonth: 30, enTitle: 'November 2026' },
-                    { year: 2026, month: 12, firstDayOffset: 2, daysInMonth: 31, enTitle: 'December 2026' },
-                    { year: 2027, month: 1, firstDayOffset: 5, daysInMonth: 31, enTitle: 'January 2027' }
-                ];
-
-                let selectedActDate = TODAY_DATE_STR;
-                let actMonthIndex = 0;
-
-                function setActMonthIndex(idx) {
-                    actMonthIndex = Math.max(0, Math.min(actMonthList.length - 1, idx));
-                    const btn11 = document.getElementById('actMonth11Btn');
-                    const btn12 = document.getElementById('actMonth12Btn');
-                    const btn01 = document.getElementById('actMonth01Btn');
-                    const prevBtn = document.getElementById('actPrevMonthBtn');
-                    const nextBtn = document.getElementById('actNextMonthBtn');
-
-                    const activeCls = 'rounded-full px-3 py-1 text-xs font-bold bg-amber-500 text-stone-950 shadow-[0_0_10px_rgba(245,158,11,0.35)] transition-all cursor-pointer';
-                    const inactiveCls = 'rounded-full px-3 py-1 text-xs font-medium text-amber-200/75 hover:text-amber-50 transition-all cursor-pointer';
-
-                    if (btn11) btn11.className = actMonthIndex === 0 ? activeCls : inactiveCls;
-                    if (btn12) btn12.className = actMonthIndex === 1 ? activeCls : inactiveCls;
-                    if (btn01) btn01.className = actMonthIndex === 2 ? activeCls : inactiveCls;
-                    if (prevBtn) prevBtn.disabled = actMonthIndex === 0;
-                    if (nextBtn) nextBtn.disabled = actMonthIndex === actMonthList.length - 1;
-
-                    renderActCalendar();
-                }
-
-                function renderActDetails(dateStr) {
-                    selectedActDate = dateStr;
-                    const headingEl = document.getElementById('actSelectedDateHeading');
-                    const badgeEl = document.getElementById('actCountBadge');
-                    const contentEl = document.getElementById('actDetailContent');
-                    if (!headingEl || !badgeEl || !contentEl) return;
-
-                    const t = translations[currentLang];
-                    headingEl.textContent = dateStr;
-                    const items = schoolActivityData[dateStr] || [];
-
-                    if (items.length === 0) {
-                        badgeEl.classList.add('hidden');
-                        contentEl.className = 'mt-3 flex-1 min-h-0 overflow-y-auto pr-1 flex flex-col items-center justify-center text-center py-6';
-                        contentEl.innerHTML = `
-                            <div class="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/25 flex items-center justify-center text-amber-400/75 mb-3">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
-                                </svg>
-                            </div>
-                            <p class="text-base sm:text-lg font-bold text-amber-100">${t.noActToday}</p>
-                            <p class="text-xs sm:text-sm text-amber-200/60 mt-1 max-w-xs">${t.noActSub}</p>
-                        `;
-                    } else {
-                        badgeEl.classList.remove('hidden');
-                        badgeEl.textContent = `${items.length} ${t.actCountSuffix}`;
-                        contentEl.className = 'mt-3 flex-1 min-h-0 overflow-y-auto pr-1 flex flex-col justify-start';
-
-                        const cardsHtml = items
-                            .map((item, idx) => {
-                                const numStr = String(idx + 1).padStart(2, '0');
-                                const badgeClass = item.isHoliday
-                                    ? 'bg-emerald-500/15 border-emerald-400/40 text-emerald-300'
-                                    : item.isCamp
-                                    ? 'bg-orange-500/20 border-orange-400/45 text-orange-300'
-                                    : 'bg-amber-500/15 border-amber-400/35 text-amber-300';
-
-                                return `
-                                    <div class="rounded-2xl bg-[#120703]/85 border border-amber-500/25 hover:border-amber-400/55 p-3.5 sm:p-4 transition-colors">
-                                        <div class="flex items-center justify-between gap-2 mb-2">
-                                            <span class="rounded-lg border px-2.5 py-0.5 font-mono text-xs sm:text-sm font-bold ${badgeClass}">
-                                                ${item.time}
-                                            </span>
-                                            <span class="font-mono text-xs text-amber-400/60">#${numStr}</span>
-                                        </div>
-                                        <h4 class="text-base sm:text-lg font-bold text-amber-50 tracking-wide">${item.title}</h4>
-                                    </div>
-                                `;
-                            })
-                            .join('');
-
-                        contentEl.innerHTML = `<div class="space-y-3">${cardsHtml}</div>`;
-                    }
-                }
-
-                function renderActCalendar() {
-                    const gridEl = document.getElementById('actCalendarGrid');
-                    const weekdaysEl = document.getElementById('actCalendarWeekdays');
-                    const monthTitleEl = document.getElementById('actCalendarMonthTitle');
-                    if (!gridEl) return;
-
-                    const cfg = actMonthList[actMonthIndex];
-                    if (monthTitleEl) {
-                        monthTitleEl.textContent =
-                            currentLang === 'zh'
-                                ? `${cfg.year}年 ${cfg.month}月`
-                                : cfg.enTitle;
-                    }
-
-                    if (weekdaysEl) {
-                        const labels = currentLang === 'zh' ? ['日', '一', '二', '三', '四', '五', '六'] : ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
-                        weekdaysEl.innerHTML = labels.map((d) => `<span>${d}</span>`).join('');
-                    }
-
-                    const monthStr = String(cfg.month).padStart(2, '0');
-                    gridEl.innerHTML = '';
-
-                    for (let blank = 0; blank < cfg.firstDayOffset; blank++) {
-                        const emptyCell = document.createElement('div');
-                        emptyCell.className = 'min-h-[42px] sm:min-h-[50px]';
-                        gridEl.appendChild(emptyCell);
-                    }
-
-                    for (let day = 1; day <= cfg.daysInMonth; day++) {
-                        const dayStr = String(day).padStart(2, '0');
-                        const dateStr = `${cfg.year}-${monthStr}-${dayStr}`;
-                        const isPassed = dateStr < TODAY_DATE_STR;
-                        const isToday = dateStr === TODAY_DATE_STR;
-                        const isSelected = dateStr === selectedActDate;
-                        const hasAct = Boolean(schoolActivityData[dateStr] && schoolActivityData[dateStr].length > 0);
-
-                        const dayBtn = document.createElement('button');
-                        dayBtn.type = 'button';
-
-                        let cellClasses = 'relative min-h-[42px] sm:min-h-[50px] rounded-xl sm:rounded-2xl border flex flex-col items-center justify-center transition-all cursor-pointer select-none ';
-                        if (isSelected) {
-                            cellClasses += 'bg-amber-500/30 border-amber-400 text-amber-50 shadow-[0_0_18px_rgba(245,158,11,0.35)] scale-[1.03] ';
-                        } else if (isToday) {
-                            cellClasses += 'bg-amber-500/15 border-amber-400/75 text-amber-100 hover:bg-amber-500/25 ';
-                        } else if (isPassed) {
-                            cellClasses += 'bg-white/[0.04] border-white/10 text-gray-500 hover:bg-white/[0.08] hover:text-gray-300 ';
-                        } else {
-                            cellClasses += 'bg-[#120703]/70 border-amber-500/20 text-amber-100 hover:bg-amber-500/15 hover:border-amber-400/60 ';
-                        }
-
-                        dayBtn.className = cellClasses;
-                        dayBtn.innerHTML = `
-                            <span class="font-mono text-xs sm:text-base font-bold">${day}</span>
-                            ${hasAct ? '<span class="mt-1 w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_#34d399]"></span>' : '<span class="mt-1 w-1.5 h-1.5"></span>'}
-                        `;
-
-                        dayBtn.addEventListener('click', () => {
-                            renderActDetails(dateStr);
-                            renderActCalendar();
-                        });
-
-                        gridEl.appendChild(dayBtn);
-                    }
-                }
-
-                // ==========================================
-                // 6.5 Duty Roster Data & View (06. 值日)
-                // ==========================================
-                const dutyRosterData = {
-                    dateLabel: '2026年11月27日 (星期五)',
-                    roles: [
-                        { role: '掃地', name: '鍾鎧汶', classNo: 39 },
-                        { role: '總控台', name: '崔韓妃', classNo: 14 },
-                        { role: '擦黑板', name: '張欣蔓', classNo: 15 },
-                        { role: '倒垃圾', name: '張綺晴', classNo: 16 }
-                    ],
-                    specialReminder: '鍾鎧汶 (39) -- 4天'
-                };
 
                 function renderDutyRoster() {
-                    const dateHeaderEl = document.getElementById('dutyDateHeader');
+                    const headerEl = document.getElementById('dutyDateHeader');
                     const gridEl = document.getElementById('dutyRolesGrid');
-                    const reminderEl = document.getElementById('dutySpecialReminderBox');
-                    if (!gridEl || !reminderEl) return;
+                    const specialEl = document.getElementById('dutySpecialReminderBox');
+                    if (!headerEl || !gridEl || !specialEl) return;
 
-                    if (dateHeaderEl) {
-                        dateHeaderEl.innerHTML = `
-                            <div class="flex items-center gap-2.5 sm:gap-3">
-                                <span class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-amber-500/15 border border-amber-400/35 flex items-center justify-center text-amber-300">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 sm:h-5 sm:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                    </svg>
-                                </span>
-                                <h3 class="text-lg sm:text-2xl font-bold text-amber-100 tracking-wide">${dutyRosterData.dateLabel}</h3>
+                    const t = translations[currentLang];
+
+                    headerEl.innerHTML = `
+                        <div>
+                            <span class="block font-mono text-xs uppercase tracking-widest text-amber-400/80">${t.dutyDateTitle}</span>
+                            <h3 class="text-xl sm:text-2xl lg:text-3xl font-bold text-amber-50 mt-1">${t.dutyDateDisplay}</h3>
+                        </div>
+                        <span class="rounded-full bg-amber-500/15 border border-amber-400/40 px-3.5 py-1 font-mono text-xs text-amber-300">S2F DUTY</span>
+                    `;
+
+                    const roles = [
+                        { label: t.dutySweep, person: '鍾鎧汶 (39)', code: '01' },
+                        { label: t.dutyConsole, person: '崔韓妃 (14)', code: '02' },
+                        { label: t.dutyBlackboard, person: '張欣蔓 (15)', code: '03' },
+                        { label: t.dutyTrash, person: '張綺晴 (16)', code: '04' }
+                    ];
+
+                    gridEl.innerHTML = roles.map((r) => `
+                        <div class="rounded-2xl bg-[#120703]/80 border border-amber-500/30 p-4 sm:p-6 flex flex-col justify-between">
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm sm:text-base font-semibold text-amber-300/90">${r.label}</span>
+                                <span class="font-mono text-xs text-amber-400/65">${r.code}</span>
                             </div>
-                            <span class="hidden sm:inline-block font-mono text-xs tracking-widest uppercase text-amber-400/70">DAILY DUTY ROSTER</span>
-                        `;
-                    }
+                            <div class="text-xl sm:text-2xl lg:text-3xl font-bold text-amber-50 mt-3">${r.person}</div>
+                        </div>
+                    `).join('');
 
-                    gridEl.innerHTML = dutyRosterData.roles
-                        .map((item, index) => {
-                            const classNoText = String(item.classNo).padStart(2, '0');
-                            const idxText = String(index + 1).padStart(2, '0');
-                            return `
-                                <div class="rounded-2xl bg-[#120703]/85 border border-amber-500/25 hover:border-amber-400/60 p-5 sm:p-6 flex flex-col justify-between transition-colors">
-                                    <div class="flex items-center justify-between gap-2 mb-3">
-                                        <span class="text-base sm:text-xl font-bold text-amber-300 tracking-wide">${item.role}</span>
-                                        <span class="font-mono text-xs text-amber-400/60">DUTY // ${idxText}</span>
-                                    </div>
-                                    <div class="flex items-center gap-3 pt-3 border-t border-amber-500/15">
-                                        <span class="rounded-xl bg-amber-500/15 border border-amber-400/40 px-3 py-1 font-mono text-sm sm:text-base font-bold text-amber-300">
-                                            (${classNoText})
-                                        </span>
-                                        <span class="text-xl sm:text-2xl font-bold text-amber-50 tracking-wide">${item.name}</span>
-                                    </div>
-                                </div>
-                            `;
-                        })
-                        .join('');
-
-                    reminderEl.innerHTML = `
-                        <div class="flex flex-wrap items-center gap-3 sm:gap-4">
-                            <span class="inline-flex items-center gap-2 rounded-xl bg-amber-500 text-stone-950 px-3 py-1 text-xs sm:text-sm font-bold tracking-wide shadow-[0_0_12px_rgba(245,158,11,0.4)]">
-                                <span class="w-2 h-2 rounded-full bg-stone-950"></span>
-                                特別提醒
+                    specialEl.innerHTML = `
+                        <div class="flex flex-wrap items-center justify-between gap-2">
+                            <span class="inline-flex items-center gap-2 text-sm sm:text-base font-bold text-amber-300">
+                                <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+                                ${t.dutySpecialTitle}
                             </span>
-                            <span class="text-base sm:text-xl font-bold text-amber-100 tracking-wide">
-                                ${dutyRosterData.specialReminder}
-                            </span>
+                            <span class="text-base sm:text-xl font-bold text-amber-50">${t.dutySpecialDetail}</span>
                         </div>
                     `;
                 }
 
                 // ==========================================
-                // 7. Bilingual Language Switcher
+                // 9. Calendar Refresh Helpers
+                // ==========================================
+                function refreshLeaveCalendar() {
+                    renderModuleCalendar({
+                        monthObj: availableMonths[leaveMonthIdx],
+                        monthIdx: leaveMonthIdx,
+                        monthsList: availableMonths,
+                        selectedDate: selectedLeaveDate,
+                        dataMap: officialLeaveData,
+                        titleEl: document.getElementById('leaveCalendarMonthTitle'),
+                        prevBtn: document.getElementById('leavePrevMonthBtn'),
+                        nextBtn: document.getElementById('leaveNextMonthBtn'),
+                        monthBtns: [document.getElementById('leaveMonth11Btn'), document.getElementById('leaveMonth12Btn')],
+                        gridEl: document.getElementById('leaveCalendarGrid'),
+                        onSelectDate: (dateStr) => {
+                            selectedLeaveDate = dateStr;
+                            refreshLeaveCalendar();
+                            renderLeaveDetails(dateStr);
+                        }
+                    });
+                }
+
+                function refreshHwCalendar() {
+                    renderModuleCalendar({
+                        monthObj: availableMonths[hwMonthIdx],
+                        monthIdx: hwMonthIdx,
+                        monthsList: availableMonths,
+                        selectedDate: selectedHwDate,
+                        dataMap: homeworkData,
+                        titleEl: document.getElementById('hwCalendarMonthTitle'),
+                        prevBtn: document.getElementById('hwPrevMonthBtn'),
+                        nextBtn: document.getElementById('hwNextMonthBtn'),
+                        monthBtns: [document.getElementById('hwMonth11Btn'), document.getElementById('hwMonth12Btn')],
+                        gridEl: document.getElementById('hwCalendarGrid'),
+                        onSelectDate: (dateStr) => {
+                            selectedHwDate = dateStr;
+                            refreshHwCalendar();
+                            renderGenericItemDetails(dateStr, homeworkData, 'hwSelectedDateHeading', 'hwCountBadge', 'hwDetailContent', 'noHwMsg');
+                        }
+                    });
+                }
+
+                function refreshScCalendar() {
+                    renderModuleCalendar({
+                        monthObj: availableMonths[scMonthIdx],
+                        monthIdx: scMonthIdx,
+                        monthsList: availableMonths,
+                        selectedDate: selectedScDate,
+                        dataMap: scheduleChangeData,
+                        titleEl: document.getElementById('scCalendarMonthTitle'),
+                        prevBtn: document.getElementById('scPrevMonthBtn'),
+                        nextBtn: document.getElementById('scNextMonthBtn'),
+                        monthBtns: [document.getElementById('scMonth11Btn'), document.getElementById('scMonth12Btn')],
+                        gridEl: document.getElementById('scCalendarGrid'),
+                        onSelectDate: (dateStr) => {
+                            selectedScDate = dateStr;
+                            refreshScCalendar();
+                            renderGenericItemDetails(dateStr, scheduleChangeData, 'scSelectedDateHeading', 'scCountBadge', 'scDetailContent', 'noScMsg');
+                        }
+                    });
+                }
+
+                function refreshTestCalendar() {
+                    renderModuleCalendar({
+                        monthObj: availableMonths[testMonthIdx],
+                        monthIdx: testMonthIdx,
+                        monthsList: availableMonths,
+                        selectedDate: selectedTestDate,
+                        dataMap: testData,
+                        titleEl: document.getElementById('testCalendarMonthTitle'),
+                        prevBtn: document.getElementById('testPrevMonthBtn'),
+                        nextBtn: document.getElementById('testNextMonthBtn'),
+                        monthBtns: [document.getElementById('testMonth11Btn'), document.getElementById('testMonth12Btn')],
+                        gridEl: document.getElementById('testCalendarGrid'),
+                        onSelectDate: (dateStr) => {
+                            selectedTestDate = dateStr;
+                            refreshTestCalendar();
+                            renderGenericItemDetails(dateStr, testData, 'testSelectedDateHeading', 'testCountBadge', 'testDetailContent', 'noTestMsg');
+                        }
+                    });
+                }
+
+                function refreshActCalendar() {
+                    renderModuleCalendar({
+                        monthObj: actAvailableMonths[actMonthIdx],
+                        monthIdx: actMonthIdx,
+                        monthsList: actAvailableMonths,
+                        selectedDate: selectedActDate,
+                        dataMap: activityData,
+                        titleEl: document.getElementById('actCalendarMonthTitle'),
+                        prevBtn: document.getElementById('actPrevMonthBtn'),
+                        nextBtn: document.getElementById('actNextMonthBtn'),
+                        monthBtns: [
+                            document.getElementById('actMonth11Btn'),
+                            document.getElementById('actMonth12Btn'),
+                            document.getElementById('actMonth01Btn')
+                        ],
+                        gridEl: document.getElementById('actCalendarGrid'),
+                        onSelectDate: (dateStr) => {
+                            selectedActDate = dateStr;
+                            refreshActCalendar();
+                            renderGenericItemDetails(dateStr, activityData, 'actSelectedDateHeading', 'actCountBadge', 'actDetailContent', 'noActMsg');
+                        }
+                    });
+                }
+
+                function refreshAllViews() {
+                    refreshLeaveCalendar();
+                    renderLeaveDetails(selectedLeaveDate);
+                    refreshHwCalendar();
+                    renderGenericItemDetails(selectedHwDate, homeworkData, 'hwSelectedDateHeading', 'hwCountBadge', 'hwDetailContent', 'noHwMsg');
+                    refreshScCalendar();
+                    renderGenericItemDetails(selectedScDate, scheduleChangeData, 'scSelectedDateHeading', 'scCountBadge', 'scDetailContent', 'noScMsg');
+                    refreshTestCalendar();
+                    renderGenericItemDetails(selectedTestDate, testData, 'testSelectedDateHeading', 'testCountBadge', 'testDetailContent', 'noTestMsg');
+                    refreshActCalendar();
+                    renderGenericItemDetails(selectedActDate, activityData, 'actSelectedDateHeading', 'actCountBadge', 'actDetailContent', 'noActMsg');
+                    renderDutyRoster();
+                }
+
+                // ==========================================
+                // 10. Language Switcher
                 // ==========================================
                 function applyLanguage(lang) {
                     currentLang = lang;
-                    const dict = translations[lang];
+                    const t = translations[lang];
 
                     document.querySelectorAll('[data-i18n]').forEach((el) => {
                         const key = el.getAttribute('data-i18n');
-                        if (dict[key]) el.textContent = dict[key];
+                        if (t[key]) {
+                            el.textContent = t[key];
+                        }
                     });
 
                     document.querySelectorAll('[data-i18n-placeholder]').forEach((el) => {
                         const key = el.getAttribute('data-i18n-placeholder');
-                        if (dict[key]) el.setAttribute('placeholder', dict[key]);
+                        if (t[key]) {
+                            el.setAttribute('placeholder', t[key]);
+                        }
+                    });
+
+                    const weekdayLabels = lang === 'zh'
+                        ? ['日', '一', '二', '三', '四', '五', '六']
+                        : ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+
+                    ['calendarWeekdays', 'hwCalendarWeekdays', 'scCalendarWeekdays', 'testCalendarWeekdays', 'actCalendarWeekdays'].forEach((id) => {
+                        const container = document.getElementById(id);
+                        if (container) {
+                            container.innerHTML = weekdayLabels.map((d) => `<span>${d}</span>`).join('');
+                        }
                     });
 
                     const zhBtn = document.getElementById('langZhBtn');
                     const enBtn = document.getElementById('langEnBtn');
                     if (zhBtn && enBtn) {
                         if (lang === 'zh') {
-                            zhBtn.className = 'rounded-full px-3.5 py-1.5 text-xs sm:text-sm font-bold transition-all cursor-pointer bg-amber-500 text-stone-950 shadow-[0_0_12px_rgba(245,158,11,0.35)]';
+                            zhBtn.className = 'rounded-full px-3.5 py-1.5 text-xs sm:text-sm font-medium transition-all cursor-pointer bg-amber-500 text-stone-950 font-bold shadow-[0_0_12px_rgba(245,158,11,0.35)]';
                             enBtn.className = 'rounded-full px-3.5 py-1.5 text-xs sm:text-sm font-medium transition-all cursor-pointer text-amber-200/80 hover:text-amber-50';
                         } else {
-                            enBtn.className = 'rounded-full px-3.5 py-1.5 text-xs sm:text-sm font-bold transition-all cursor-pointer bg-amber-500 text-stone-950 shadow-[0_0_12px_rgba(245,158,11,0.35)]';
+                            enBtn.className = 'rounded-full px-3.5 py-1.5 text-xs sm:text-sm font-medium transition-all cursor-pointer bg-amber-500 text-stone-950 font-bold shadow-[0_0_12px_rgba(245,158,11,0.35)]';
                             zhBtn.className = 'rounded-full px-3.5 py-1.5 text-xs sm:text-sm font-medium transition-all cursor-pointer text-amber-200/80 hover:text-amber-50';
                         }
                     }
 
-                    updateSchoolStatus();
-                    renderLeaveCalendar();
-                    renderLeaveDetails(selectedLeaveDate);
-                    renderHwCalendar();
-                    renderHwDetails(selectedHwDate);
-                    renderScCalendar();
-                    renderScDetails(selectedScDate);
-                    renderTestCalendar();
-                    renderTestDetails(selectedTestDate);
-                    renderActCalendar();
-                    renderActDetails(selectedActDate);
-                    renderDutyRoster();
+                    updateMacauTimeAndStatus();
+                    refreshAllViews();
                 }
 
-                // ==========================================
-                // 8. View Navigation & Authentication
-                // ==========================================
-                const VALID_USER = 'S2F_remarks';
-                const VALID_PASS = 'S2F@remarks';
-
-                const loginView = document.getElementById('loginView');
-                const dashboardView = document.getElementById('dashboardView');
-                const officialLeaveView = document.getElementById('officialLeaveView');
-                const homeworkView = document.getElementById('homeworkView');
-                const scheduleChangeView = document.getElementById('scheduleChangeView');
-                const testView = document.getElementById('testView');
-                const activityView = document.getElementById('activityView');
-                const dutyView = document.getElementById('dutyView');
-                const dashboardUserControls = document.getElementById('dashboardUserControls');
-
-                const allViews = [
-                    loginView,
-                    dashboardView,
-                    officialLeaveView,
-                    homeworkView,
-                    scheduleChangeView,
-                    testView,
-                    activityView,
-                    dutyView
-                ];
-
-                function switchView(targetView) {
-                    allViews.forEach((v) => {
-                        if (!v) return;
-                        v.classList.add('hidden', 'opacity-0', 'translate-y-4');
-                        v.classList.remove('flex');
-                    });
-
-                    if (targetView === loginView) {
-                        dashboardUserControls.classList.add('hidden');
-                        dashboardUserControls.classList.remove('flex');
-                    } else {
-                        dashboardUserControls.classList.remove('hidden');
-                        dashboardUserControls.classList.add('flex');
-                    }
-
-                    if (targetView) {
-                        targetView.classList.remove('hidden');
-                        targetView.classList.add('flex');
-                        requestAnimationFrame(() => {
-                            targetView.classList.remove('opacity-0', 'translate-y-4');
-                        });
-                    }
-                }
-
-                // Login Form Submit
-                const loginForm = document.getElementById('loginForm');
-                const loginCard = document.getElementById('loginCard');
-                const usernameInput = document.getElementById('usernameInput');
-                const passwordInput = document.getElementById('passwordInput');
-                const loginErrorBox = document.getElementById('loginErrorBox');
-
-                if (loginForm) {
-                    loginForm.addEventListener('submit', (e) => {
-                        e.preventDefault();
-                        const userVal = usernameInput ? usernameInput.value.trim() : '';
-                        const passVal = passwordInput ? passwordInput.value : '';
-
-                        if (userVal === VALID_USER && passVal === VALID_PASS) {
-                            if (loginErrorBox) loginErrorBox.classList.add('hidden');
-                            switchView(dashboardView);
-                        } else {
-                            if (loginErrorBox) loginErrorBox.classList.remove('hidden');
-                            if (loginCard) {
-                                loginCard.classList.remove('animate-shake');
-                                void loginCard.offsetWidth;
-                                loginCard.classList.add('animate-shake');
-                            }
-                        }
-                    });
-                }
-
-                // Logout Button
-                const logoutBtn = document.getElementById('logoutBtn');
-                if (logoutBtn) {
-                    logoutBtn.addEventListener('click', () => {
-                        if (usernameInput) usernameInput.value = '';
-                        if (passwordInput) passwordInput.value = '';
-                        if (loginErrorBox) loginErrorBox.classList.add('hidden');
-                        switchView(loginView);
-                    });
-                }
-
-                // Dashboard Category Buttons
-                const toastEl = document.getElementById('dashboardToast');
-                let toastTimer = null;
-
-                document.querySelectorAll('.category-btn').forEach((btn) => {
-                    btn.addEventListener('click', () => {
-                        const cat = btn.getAttribute('data-category');
-                        if (cat === '公假名單') {
-                            renderLeaveCalendar();
-                            renderLeaveDetails(selectedLeaveDate);
-                            switchView(officialLeaveView);
-                        } else if (cat === '功課') {
-                            renderHwCalendar();
-                            renderHwDetails(selectedHwDate);
-                            switchView(homeworkView);
-                        } else if (cat === '調課/代課情況') {
-                            renderScCalendar();
-                            renderScDetails(selectedScDate);
-                            switchView(scheduleChangeView);
-                        } else if (cat === '測驗') {
-                            renderTestCalendar();
-                            renderTestDetails(selectedTestDate);
-                            switchView(testView);
-                        } else if (cat === '學校活動') {
-                            renderActCalendar();
-                            renderActDetails(selectedActDate);
-                            switchView(activityView);
-                        } else if (cat === '值日') {
-                            renderDutyRoster();
-                            switchView(dutyView);
-                        } else if (toastEl) {
-                            const label = btn.querySelector('h3')?.textContent || cat;
-                            toastEl.textContent = `${translations[currentLang].comingSoonPrefix}${label}`;
-                            toastEl.classList.remove('hidden');
-                            if (toastTimer) clearTimeout(toastTimer);
-                            toastTimer = setTimeout(() => toastEl.classList.add('hidden'), 2600);
-                        }
-                    });
-                });
-
-                // Back Buttons
-                const backButtons = [
-                    'backToDashboardBtn',
-                    'backFromHwBtn',
-                    'backFromScBtn',
-                    'backFromTestBtn',
-                    'backFromActBtn',
-                    'backFromDutyBtn'
-                ];
-                backButtons.forEach((id) => {
-                    const btn = document.getElementById(id);
-                    if (btn) {
-                        btn.addEventListener('click', () => switchView(dashboardView));
-                    }
-                });
-
-                // Month Switcher Event Listeners (01. Official Leave)
-                document.getElementById('leavePrevMonthBtn')?.addEventListener('click', () => setLeaveCalendarMonth(11));
-                document.getElementById('leaveNextMonthBtn')?.addEventListener('click', () => setLeaveCalendarMonth(12));
-                document.getElementById('leaveMonth11Btn')?.addEventListener('click', () => setLeaveCalendarMonth(11));
-                document.getElementById('leaveMonth12Btn')?.addEventListener('click', () => setLeaveCalendarMonth(12));
-
-                // Month Switcher Event Listeners (02. Homework)
-                document.getElementById('hwPrevMonthBtn')?.addEventListener('click', () => setHwCalendarMonth(11));
-                document.getElementById('hwNextMonthBtn')?.addEventListener('click', () => setHwCalendarMonth(12));
-                document.getElementById('hwMonth11Btn')?.addEventListener('click', () => setHwCalendarMonth(11));
-                document.getElementById('hwMonth12Btn')?.addEventListener('click', () => setHwCalendarMonth(12));
-
-                // Month Switcher Event Listeners (03. Schedule / Substitution)
-                document.getElementById('scPrevMonthBtn')?.addEventListener('click', () => setScCalendarMonth(11));
-                document.getElementById('scNextMonthBtn')?.addEventListener('click', () => setScCalendarMonth(12));
-                document.getElementById('scMonth11Btn')?.addEventListener('click', () => setScCalendarMonth(11));
-                document.getElementById('scMonth12Btn')?.addEventListener('click', () => setScCalendarMonth(12));
-
-                // Month Switcher Event Listeners (04. Tests & Quizzes)
-                document.getElementById('testPrevMonthBtn')?.addEventListener('click', () => setTestCalendarMonth(11));
-                document.getElementById('testNextMonthBtn')?.addEventListener('click', () => setTestCalendarMonth(12));
-                document.getElementById('testMonth11Btn')?.addEventListener('click', () => setTestCalendarMonth(11));
-                document.getElementById('testMonth12Btn')?.addEventListener('click', () => setTestCalendarMonth(12));
-
-                // Month Switcher Event Listeners (05. School Activities)
-                document.getElementById('actPrevMonthBtn')?.addEventListener('click', () => setActMonthIndex(actMonthIndex - 1));
-                document.getElementById('actNextMonthBtn')?.addEventListener('click', () => setActMonthIndex(actMonthIndex + 1));
-                document.getElementById('actMonth11Btn')?.addEventListener('click', () => setActMonthIndex(0));
-                document.getElementById('actMonth12Btn')?.addEventListener('click', () => setActMonthIndex(1));
-                document.getElementById('actMonth01Btn')?.addEventListener('click', () => setActMonthIndex(2));
-
-                // Language Switcher Buttons
                 document.getElementById('langZhBtn')?.addEventListener('click', () => applyLanguage('zh'));
                 document.getElementById('langEnBtn')?.addEventListener('click', () => applyLanguage('en'));
 
                 // ==========================================
-                // 9. Live Macau (GMT+8) Date, Clock & Status
+                // 11. Live Macau Clock & 4-Color School Status
                 // ==========================================
-                function updateSchoolStatus() {
-                    const dotEl = document.getElementById('schoolStatusDot');
-                    const textEl = document.getElementById('schoolStatusText');
+                function updateMacauTimeAndStatus() {
+                    const macau = getMacauNow();
+                    const y = macau.getFullYear();
+                    const m = String(macau.getMonth() + 1).padStart(2, '0');
+                    const d = String(macau.getDate()).padStart(2, '0');
+                    const hours = String(macau.getHours()).padStart(2, '0');
+                    const minutes = String(macau.getMinutes()).padStart(2, '0');
+                    const seconds = String(macau.getSeconds()).padStart(2, '0');
+
                     const dateEl = document.getElementById('macauDateText');
                     const clockEl = document.getElementById('macauClockText');
-                    if (!dotEl || !textEl || !clockEl) return;
-
-                    const dt = getMacauDateTimeParts();
-                    const totalMins = dt.hourNum * 60 + dt.minNum;
-
                     if (dateEl) {
-                        dateEl.textContent =
-                            currentLang === 'zh'
-                                ? `${dt.yearStr}年${dt.monthStr}月${dt.dayStr}日`
-                                : dt.dateStr;
+                        dateEl.textContent = currentLang === 'zh' ? `${y}年${m}月${d}日` : `${y}-${m}-${d}`;
+                    }
+                    if (clockEl) {
+                        clockEl.textContent = `${hours}:${minutes}:${seconds} GMT+8`;
                     }
 
-                    const hhStr = String(dt.hourNum).padStart(2, '0');
-                    const mmStr = String(dt.minNum).padStart(2, '0');
-                    clockEl.textContent = `${hhStr}:${mmStr}:${dt.secStr} GMT+8`;
+                    // Status indicator logic (Macau GMT+8)
+                    // Grey = 放學時段 | Red = 午飯 | Yellow = 小息 | Green = 上課中
+                    const dayOfWeek = macau.getDay(); // 0 = Sun, 1 = Mon ... 6 = Sat
+                    const totalMins = macau.getHours() * 60 + macau.getMinutes();
 
-                    // Automatically advance calendars when a new day starts in Macau
-                    if (dt.dateStr !== TODAY_DATE_STR) {
-                        const previousToday = TODAY_DATE_STR;
-                        TODAY_DATE_STR = dt.dateStr;
-                        if (selectedLeaveDate === previousToday) selectedLeaveDate = TODAY_DATE_STR;
-                        if (selectedHwDate === previousToday) selectedHwDate = TODAY_DATE_STR;
-                        if (selectedScDate === previousToday) selectedScDate = TODAY_DATE_STR;
-                        if (selectedTestDate === previousToday) selectedTestDate = TODAY_DATE_STR;
-                        if (selectedActDate === previousToday) selectedActDate = TODAY_DATE_STR;
+                    let statusState = 'green';
 
-                        renderLeaveCalendar();
-                        renderLeaveDetails(selectedLeaveDate);
-                        renderHwCalendar();
-                        renderHwDetails(selectedHwDate);
-                        renderScCalendar();
-                        renderScDetails(selectedScDate);
-                        renderTestCalendar();
-                        renderTestDetails(selectedTestDate);
-                        renderActCalendar();
-                        renderActDetails(selectedActDate);
+                    const isSundayGrey = dayOfWeek === 0;
+                    const isSaturdayGrey = dayOfWeek === 6 && totalMins >= (12 * 60 + 15);
+                    const isWeekdayGrey = dayOfWeek >= 1 && dayOfWeek <= 5 && (totalMins < (8 * 60 + 5) || totalMins >= (15 * 60 + 45));
+
+                    const isWeekdayRed = dayOfWeek >= 1 && dayOfWeek <= 5 && totalMins >= (12 * 60 + 15) && totalMins < (14 * 60 + 15);
+
+                    const isMonToSatYellow = dayOfWeek >= 1 && dayOfWeek <= 6 && (
+                        (totalMins >= (8 * 60 + 45) && totalMins < (9 * 60 + 0)) ||
+                        (totalMins >= (9 * 60 + 40) && totalMins < (9 * 60 + 50)) ||
+                        (totalMins >= (10 * 60 + 30) && totalMins < (10 * 60 + 40)) ||
+                        (totalMins >= (11 * 60 + 20) && totalMins < (11 * 60 + 35))
+                    );
+                    const isWeekdayAfternoonYellow = dayOfWeek >= 1 && dayOfWeek <= 5 && (
+                        totalMins >= (14 * 60 + 55) && totalMins < (15 * 60 + 5)
+                    );
+
+                    if (isSundayGrey || isSaturdayGrey || isWeekdayGrey) {
+                        statusState = 'grey';
+                    } else if (isWeekdayRed) {
+                        statusState = 'red';
+                    } else if (isMonToSatYellow || isWeekdayAfternoonYellow) {
+                        statusState = 'yellow';
                     }
 
-                    const isWeekday = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'].includes(dt.weekday);
-                    const isSaturday = dt.weekday === 'Sat';
+                    const dotEl = document.getElementById('schoolStatusDot');
+                    const statusTextEl = document.getElementById('schoolStatusText');
+                    if (dotEl && statusTextEl) {
+                        if (statusState === 'grey') {
+                            dotEl.className = 'w-2.5 h-2.5 rounded-full bg-gray-400 transition-all duration-300';
+                            statusTextEl.textContent = translations[currentLang].statusAfterSchool;
+                        } else if (statusState === 'red') {
+                            dotEl.className = 'w-2.5 h-2.5 rounded-full bg-red-500 shadow-[0_0_10px_#ef4444] transition-all duration-300';
+                            statusTextEl.textContent = translations[currentLang].statusLunch;
+                        } else if (statusState === 'yellow') {
+                            dotEl.className = 'w-2.5 h-2.5 rounded-full bg-amber-400 shadow-[0_0_10px_#fbbf24] transition-all duration-300';
+                            statusTextEl.textContent = translations[currentLang].statusRecess;
+                        } else {
+                            dotEl.className = 'w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-[0_0_10px_#34d399] transition-all duration-300';
+                            statusTextEl.textContent = translations[currentLang].statusInClass;
+                        }
+                    }
 
-                    const inMorning = totalMins >= 485 && totalMins <= 735;   // 08:05 ~ 12:15
-                    const inAfternoon = totalMins >= 855 && totalMins <= 945; // 14:15 ~ 15:45
-
-                    const isSchoolHours = (isWeekday && (inMorning || inAfternoon)) || (isSaturday && inMorning);
-
-                    if (isSchoolHours) {
-                        dotEl.className = 'w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-[0_0_10px_#34d399] transition-all duration-300';
-                        textEl.textContent = translations[currentLang].statusSchoolHours;
-                    } else {
-                        dotEl.className = 'w-2.5 h-2.5 rounded-full bg-gray-400 transition-all duration-300';
-                        textEl.textContent = translations[currentLang].statusAfterSchool;
+                    // Auto-rollover calendar highlighting if midnight passes while open
+                    const latestTodayStr = `${y}-${m}-${d}`;
+                    if (latestTodayStr !== currentMacauTodayStr) {
+                        currentMacauTodayStr = latestTodayStr;
+                        refreshAllViews();
                     }
                 }
 
-                updateSchoolStatus();
-                setInterval(updateSchoolStatus, 1000);
+                setInterval(updateMacauTimeAndStatus, 1000);
+                updateMacauTimeAndStatus();
 
                 // ==========================================
-                // 10. Three.js Vertical Spinning Orbit Lines
+                // 12. Firebase Login & Logout Handlers
+                // ==========================================
+                const loginForm = document.getElementById('loginForm');
+                const loginErrorBox = document.getElementById('loginErrorBox');
+                const loginErrorText = document.getElementById('loginErrorText');
+                const loginSubmitBtn = document.getElementById('loginSubmitBtn');
+                const dashboardUserControls = document.getElementById('dashboardUserControls');
+                const loggedInUserBadge = document.getElementById('loggedInUserBadge');
+
+                function enterDashboard(displayName) {
+                    isLoggedIn = true;
+                    if (loggedInUserBadge) loggedInUserBadge.textContent = displayName || 'USER';
+                    if (dashboardUserControls) {
+                        dashboardUserControls.classList.remove('hidden');
+                        dashboardUserControls.classList.add('flex');
+                    }
+                    if (loginErrorBox) loginErrorBox.classList.add('hidden');
+                    switchView('dashboard');
+                }
+
+                if (firebaseAuth) {
+                    onAuthStateChanged(firebaseAuth, (user) => {
+                        if (user) {
+                            const rawEmail = user.email || '';
+                            const cleanName = user.displayName || (rawEmail.includes('@') ? rawEmail.split('@')[0] : rawEmail);
+                            enterDashboard(cleanName);
+                        }
+                    });
+                }
+
+                loginForm?.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const rawUsername = (document.getElementById('usernameInput')?.value || '').trim();
+                    const password = document.getElementById('passwordInput')?.value || '';
+
+                    if (!rawUsername || !password) {
+                        if (loginErrorText) loginErrorText.textContent = translations[currentLang].loginError;
+                        loginErrorBox?.classList.remove('hidden');
+                        document.getElementById('loginCard')?.classList.add('animate-shake');
+                        setTimeout(() => document.getElementById('loginCard')?.classList.remove('animate-shake'), 400);
+                        return;
+                    }
+
+                    if (!firebaseAuth) {
+                        if (loginErrorText) loginErrorText.textContent = translations[currentLang].firebaseConfigError;
+                        loginErrorBox?.classList.remove('hidden');
+                        return;
+                    }
+
+                    const email = rawUsername.includes('@')
+                        ? rawUsername
+                        : `${rawUsername.toLowerCase()}@secondary-remarks.firebaseapp.com`;
+
+                    if (loginSubmitBtn) {
+                        loginSubmitBtn.disabled = true;
+                        loginSubmitBtn.textContent = translations[currentLang].loggingInBtn;
+                    }
+
+                    try {
+                        await signInWithEmailAndPassword(firebaseAuth, email, password);
+                        enterDashboard(rawUsername);
+                    } catch (err) {
+                        if (loginErrorText) loginErrorText.textContent = translations[currentLang].loginError;
+                        loginErrorBox?.classList.remove('hidden');
+                        document.getElementById('loginCard')?.classList.add('animate-shake');
+                        setTimeout(() => document.getElementById('loginCard')?.classList.remove('animate-shake'), 400);
+                    } finally {
+                        if (loginSubmitBtn) {
+                            loginSubmitBtn.disabled = false;
+                            loginSubmitBtn.textContent = translations[currentLang].loginBtn;
+                        }
+                    }
+                });
+
+                document.getElementById('logoutBtn')?.addEventListener('click', async () => {
+                    try {
+                        if (firebaseAuth) {
+                            await signOut(firebaseAuth);
+                        }
+                    } catch (e) {
+                        // Ignore signOut errors and reset UI cleanly
+                    }
+                    isLoggedIn = false;
+                    if (inactivityTimer) {
+                        clearTimeout(inactivityTimer);
+                        inactivityTimer = null;
+                    }
+                    if (dashboardUserControls) {
+                        dashboardUserControls.classList.add('hidden');
+                        dashboardUserControls.classList.remove('flex');
+                    }
+                    const uInput = document.getElementById('usernameInput');
+                    const pInput = document.getElementById('passwordInput');
+                    if (uInput) uInput.value = '';
+                    if (pInput) pInput.value = '';
+                    switchView('login');
+                });
+
+                // ==========================================
+                // 13. Category Buttons & Back Buttons
+                // ==========================================
+                document.querySelectorAll('.category-btn').forEach((btn) => {
+                    btn.addEventListener('click', () => {
+                        const cat = btn.getAttribute('data-category');
+                        if (cat === '公假名單') {
+                            refreshLeaveCalendar();
+                            renderLeaveDetails(selectedLeaveDate);
+                            switchView('leave');
+                        } else if (cat === '功課') {
+                            refreshHwCalendar();
+                            renderGenericItemDetails(selectedHwDate, homeworkData, 'hwSelectedDateHeading', 'hwCountBadge', 'hwDetailContent', 'noHwMsg');
+                            switchView('homework');
+                        } else if (cat === '調課/代課情況') {
+                            refreshScCalendar();
+                            renderGenericItemDetails(selectedScDate, scheduleChangeData, 'scSelectedDateHeading', 'scCountBadge', 'scDetailContent', 'noScMsg');
+                            switchView('schedule');
+                        } else if (cat === '測驗') {
+                            refreshTestCalendar();
+                            renderGenericItemDetails(selectedTestDate, testData, 'testSelectedDateHeading', 'testCountBadge', 'testDetailContent', 'noTestMsg');
+                            switchView('test');
+                        } else if (cat === '學校活動') {
+                            refreshActCalendar();
+                            renderGenericItemDetails(selectedActDate, activityData, 'actSelectedDateHeading', 'actCountBadge', 'actDetailContent', 'noActMsg');
+                            switchView('activity');
+                        } else if (cat === '值日') {
+                            renderDutyRoster();
+                            switchView('duty');
+                        }
+                    });
+                });
+
+                ['backToDashboardBtn', 'backFromHwBtn', 'backFromScBtn', 'backFromTestBtn', 'backFromActBtn', 'backFromDutyBtn'].forEach((btnId) => {
+                    document.getElementById(btnId)?.addEventListener('click', () => switchView('dashboard'));
+                });
+
+                // Month Navigation Listeners
+                document.getElementById('leavePrevMonthBtn')?.addEventListener('click', () => {
+                    if (leaveMonthIdx > 0) { leaveMonthIdx--; refreshLeaveCalendar(); }
+                });
+                document.getElementById('leaveNextMonthBtn')?.addEventListener('click', () => {
+                    if (leaveMonthIdx < availableMonths.length - 1) { leaveMonthIdx++; refreshLeaveCalendar(); }
+                });
+                document.getElementById('leaveMonth11Btn')?.addEventListener('click', () => { leaveMonthIdx = 0; refreshLeaveCalendar(); });
+                document.getElementById('leaveMonth12Btn')?.addEventListener('click', () => { leaveMonthIdx = 1; refreshLeaveCalendar(); });
+
+                document.getElementById('hwPrevMonthBtn')?.addEventListener('click', () => {
+                    if (hwMonthIdx > 0) { hwMonthIdx--; refreshHwCalendar(); }
+                });
+                document.getElementById('hwNextMonthBtn')?.addEventListener('click', () => {
+                    if (hwMonthIdx < availableMonths.length - 1) { hwMonthIdx++; refreshHwCalendar(); }
+                });
+                document.getElementById('hwMonth11Btn')?.addEventListener('click', () => { hwMonthIdx = 0; refreshHwCalendar(); });
+                document.getElementById('hwMonth12Btn')?.addEventListener('click', () => { hwMonthIdx = 1; refreshHwCalendar(); });
+
+                document.getElementById('scPrevMonthBtn')?.addEventListener('click', () => {
+                    if (scMonthIdx > 0) { scMonthIdx--; refreshScCalendar(); }
+                });
+                document.getElementById('scNextMonthBtn')?.addEventListener('click', () => {
+                    if (scMonthIdx < availableMonths.length - 1) { scMonthIdx++; refreshScCalendar(); }
+                });
+                document.getElementById('scMonth11Btn')?.addEventListener('click', () => { scMonthIdx = 0; refreshScCalendar(); });
+                document.getElementById('scMonth12Btn')?.addEventListener('click', () => { scMonthIdx = 1; refreshScCalendar(); });
+
+                document.getElementById('testPrevMonthBtn')?.addEventListener('click', () => {
+                    if (testMonthIdx > 0) { testMonthIdx--; refreshTestCalendar(); }
+                });
+                document.getElementById('testNextMonthBtn')?.addEventListener('click', () => {
+                    if (testMonthIdx < availableMonths.length - 1) { testMonthIdx++; refreshTestCalendar(); }
+                });
+                document.getElementById('testMonth11Btn')?.addEventListener('click', () => { testMonthIdx = 0; refreshTestCalendar(); });
+                document.getElementById('testMonth12Btn')?.addEventListener('click', () => { testMonthIdx = 1; refreshTestCalendar(); });
+
+                document.getElementById('actPrevMonthBtn')?.addEventListener('click', () => {
+                    if (actMonthIdx > 0) { actMonthIdx--; refreshActCalendar(); }
+                });
+                document.getElementById('actNextMonthBtn')?.addEventListener('click', () => {
+                    if (actMonthIdx < actAvailableMonths.length - 1) { actMonthIdx++; refreshActCalendar(); }
+                });
+                document.getElementById('actMonth11Btn')?.addEventListener('click', () => { actMonthIdx = 0; refreshActCalendar(); });
+                document.getElementById('actMonth12Btn')?.addEventListener('click', () => { actMonthIdx = 1; refreshActCalendar(); });
+                document.getElementById('actMonth01Btn')?.addEventListener('click', () => { actMonthIdx = 2; refreshActCalendar(); });
+
+                // ==========================================
+                // 14. Three.js Vertical Spinning Orbit Lines Only
                 // ==========================================
                 const canvas = document.getElementById('solarCanvas');
                 if (canvas && typeof THREE !== 'undefined') {
                     const scene = new THREE.Scene();
-                    const camera = new THREE.PerspectiveCamera(58, window.innerWidth / window.innerHeight, 0.1, 1000);
-                    camera.position.set(0, 0, 34);
-                    camera.lookAt(0, 0, 0);
+                    const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+                    camera.position.set(0, 0, 18);
 
                     const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
                     renderer.setSize(window.innerWidth, window.innerHeight);
                     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
-                    // Central Vertical Orbit Lines Only (No Planets)
-                    const solarSystem = new THREE.Group();
-                    solarSystem.position.set(0, 0, -4);
-                    scene.add(solarSystem);
+                    const orbitGroup = new THREE.Group();
+                    scene.add(orbitGroup);
 
-                    const orbitConfigs = [
-                        { radius: 7.5, tiltZ: 0.24, startY: 0.2, speed: 0.0085, color: 0xfbbf24, opacity: 0.36 },
-                        { radius: 11.8, tiltZ: -0.32, startY: 1.4, speed: -0.0062, color: 0xf59e0b, opacity: 0.30 },
-                        { radius: 16.5, tiltZ: 0.18, startY: 2.6, speed: 0.0048, color: 0xea580c, opacity: 0.25 },
-                        { radius: 21.8, tiltZ: -0.22, startY: 4.1, speed: -0.0035, color: 0xfcd34d, opacity: 0.20 }
-                    ];
-
-                    const verticalOrbits = [];
-
-                    orbitConfigs.forEach((cfg) => {
-                        const tiltHolder = new THREE.Group();
-                        tiltHolder.rotation.z = cfg.tiltZ;
-                        solarSystem.add(tiltHolder);
-
-                        const ringGeo = new THREE.TorusGeometry(cfg.radius, 0.045, 12, 128);
-                        const ringMat = new THREE.MeshBasicMaterial({
-                            color: cfg.color,
+                    // Create vertical spinning orbit rings only (no central planet)
+                    const ringRadii = [4.5, 6.4, 8.3, 10.2];
+                    const orbitRings = ringRadii.map((radius, idx) => {
+                        const geo = new THREE.RingGeometry(radius - 0.025, radius + 0.025, 128);
+                        const mat = new THREE.MeshBasicMaterial({
+                            color: idx % 2 === 0 ? 0xf59e0b : 0xfb923c,
+                            side: THREE.DoubleSide,
                             transparent: true,
-                            opacity: cfg.opacity
+                            opacity: 0.24 - idx * 0.03
                         });
-                        const ringMesh = new THREE.Mesh(ringGeo, ringMat);
-                        ringMesh.rotation.y = cfg.startY;
-                        tiltHolder.add(ringMesh);
-
-                        verticalOrbits.push({ mesh: ringMesh, speed: cfg.speed });
+                        const ring = new THREE.Mesh(geo, mat);
+                        ring.rotation.x = Math.PI / 2 + (idx - 1.5) * 0.22;
+                        ring.rotation.y = idx * 0.45;
+                        orbitGroup.add(ring);
+                        return ring;
                     });
 
-                    // Ambient Solar Dust Particles
-                    const particleCount = 180;
-                    const geometry = new THREE.BufferGeometry();
+                    // Subtle ambient solar dust particles
+                    const particleCount = 140;
+                    const particleGeo = new THREE.BufferGeometry();
                     const positions = new Float32Array(particleCount * 3);
-                    const colors = new Float32Array(particleCount * 3);
-
-                    const palette = [
-                        new THREE.Color('#fbbf24'),
-                        new THREE.Color('#f59e0b'),
-                        new THREE.Color('#ea580c')
-                    ];
-
-                    for (let i = 0; i < particleCount; i++) {
-                        positions[i * 3] = (Math.random() - 0.5) * 85;
-                        positions[i * 3 + 1] = (Math.random() - 0.5) * 55;
-                        positions[i * 3 + 2] = (Math.random() - 0.5) * 45;
-
-                        const c = palette[i % palette.length];
-                        colors[i * 3] = c.r;
-                        colors[i * 3 + 1] = c.g;
-                        colors[i * 3 + 2] = c.b;
+                    for (let i = 0; i < particleCount * 3; i += 3) {
+                        positions[i] = (Math.random() - 0.5) * 34;
+                        positions[i + 1] = (Math.random() - 0.5) * 24;
+                        positions[i + 2] = (Math.random() - 0.5) * 18;
                     }
-
-                    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-                    geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-
-                    const material = new THREE.PointsMaterial({
-                        size: 0.26,
-                        vertexColors: true,
+                    particleGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+                    const particleMat = new THREE.PointsMaterial({
+                        color: 0xfbbf24,
+                        size: 0.06,
                         transparent: true,
-                        opacity: 0.68
+                        opacity: 0.35
                     });
-
-                    const points = new THREE.Points(geometry, material);
-                    scene.add(points);
+                    const particles = new THREE.Points(particleGeo, particleMat);
+                    scene.add(particles);
 
                     window.addEventListener('resize', () => {
                         camera.aspect = window.innerWidth / window.innerHeight;
@@ -2353,34 +1814,30 @@
                         renderer.setSize(window.innerWidth, window.innerHeight);
                     });
 
-                    function animateSolar() {
-                        requestAnimationFrame(animateSolar);
-                        verticalOrbits.forEach((item) => {
-                            item.mesh.rotation.y += item.speed;
+                    function animate() {
+                        requestAnimationFrame(animate);
+                        orbitRings.forEach((ring, idx) => {
+                            ring.rotation.x += 0.0022 * (idx % 2 === 0 ? 1 : -1);
+                            ring.rotation.y += 0.0014 * (idx % 2 === 0 ? 1 : -1);
                         });
-                        points.rotation.y += 0.0006;
-                        points.rotation.x += 0.0002;
+                        particles.rotation.y += 0.0004;
                         renderer.render(scene, camera);
                     }
-                    animateSolar();
+                    animate();
                 }
 
-                // Initialize default state
-                setLeaveCalendarMonth(11);
-                renderLeaveDetails(TODAY_DATE_STR);
-                setHwCalendarMonth(11);
-                renderHwDetails(TODAY_DATE_STR);
-                setScCalendarMonth(11);
-                renderScDetails(TODAY_DATE_STR);
-                setTestCalendarMonth(11);
-                renderTestDetails(TODAY_DATE_STR);
-                setActMonthIndex(0);
-                renderActDetails(TODAY_DATE_STR);
-                renderDutyRoster();
+                // Initial view render
+                applyLanguage('zh');
             } catch (err) {
-                console.error('S2F Portal initialization error:', err);
+                console.error('Portal initialization error:', err);
             }
-        };
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initPortal);
+        } else {
+            initPortal();
+        }
     </script>
 </body>
 </html>
