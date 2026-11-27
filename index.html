@@ -128,6 +128,18 @@
                         EN
                     </button>
                 </div>
+
+                <!-- Update Log Button -->
+                <button
+                    type="button"
+                    id="updateLogBtn"
+                    aria-haspopup="dialog"
+                    aria-controls="updateLogModal"
+                    class="inline-flex items-center gap-1.5 rounded-full bg-[#1a0b05]/85 hover:bg-amber-500/20 backdrop-blur-md border border-amber-500/35 hover:border-amber-400/75 px-3.5 py-1.5 text-xs sm:text-sm font-medium text-amber-200 hover:text-amber-50 shadow-[0_0_20px_rgba(245,158,11,0.12)] transition-all cursor-pointer"
+                >
+                    <span class="w-1.5 h-1.5 rounded-full bg-amber-400 shadow-[0_0_8px_#fbbf24]"></span>
+                    <span data-i18n="updateLogBtn">更新日誌</span>
+                </button>
             </div>
         </header>
 
@@ -778,9 +790,53 @@
         </section>
     </main>
 
+    <!-- ========================================== -->
+    <!-- UPDATE LOG MODAL                           -->
+    <!-- ========================================== -->
+    <div id="updateLogModal" role="dialog" aria-modal="true" aria-labelledby="updateLogModalTitle" class="hidden fixed inset-0 z-50 items-center justify-center bg-black/75 backdrop-blur-sm p-4">
+        <div id="updateLogCard" class="animate-card-pop w-full max-w-lg rounded-3xl bg-[#1a0b05]/95 backdrop-blur-xl border border-amber-500/40 shadow-[0_0_50px_rgba(245,158,11,0.22)] p-6 sm:p-7">
+            <div class="flex items-center justify-between gap-3 pb-3.5 border-b border-amber-500/20">
+                <div class="flex items-center gap-2.5">
+                    <span class="w-2 h-2 rounded-full bg-amber-400 shadow-[0_0_8px_#fbbf24]"></span>
+                    <h2 id="updateLogModalTitle" data-i18n="updateLogTitle" class="text-lg sm:text-xl font-bold tracking-wide text-amber-50">更新日誌</h2>
+                </div>
+                <button
+                    type="button"
+                    id="closeUpdateLogBtn"
+                    aria-label="Close Update Log"
+                    class="w-8 h-8 rounded-full bg-[#120703]/90 hover:bg-amber-500/20 border border-amber-500/35 hover:border-amber-400/75 flex items-center justify-center text-amber-200 hover:text-amber-50 transition-all cursor-pointer"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            <div class="mt-4 max-h-[65vh] overflow-y-auto pr-1 space-y-3">
+                <!-- Update 0.0 Entry -->
+                <div class="rounded-2xl bg-gradient-to-br from-amber-500/20 via-[#261107]/90 to-orange-500/12 border border-amber-400/50 p-4 sm:p-5 shadow-[inset_0_1px_0_rgba(254,243,199,0.22),0_4px_18px_rgba(245,158,11,0.15)] space-y-3">
+                    <div class="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-amber-500/20">
+                        <span data-i18n="update00Heading" class="font-mono text-base sm:text-lg font-bold text-amber-200">更新 0.0：</span>
+                        <span data-i18n="update00Time" class="rounded-full bg-amber-500/15 border border-amber-400/40 px-3 py-0.5 font-mono text-xs text-amber-300">時間：2026-11-27 -- 22:20</span>
+                    </div>
+                    <ol class="space-y-2 text-xs sm:text-sm text-amber-50/95 leading-relaxed">
+                        <li class="flex items-start gap-2.5 rounded-xl bg-white/[0.04] border border-amber-500/15 px-3 py-2">
+                            <span class="mt-0.5 w-5 h-5 shrink-0 rounded-lg bg-amber-500/20 border border-amber-400/45 flex items-center justify-center font-mono text-[11px] font-bold text-amber-300">1</span>
+                            <span data-i18n="update00Item1">已為本網站新增伺服器，但暫時尚未對外開放。</span>
+                        </li>
+                        <li class="flex items-start gap-2.5 rounded-xl bg-white/[0.04] border border-amber-500/15 px-3 py-2">
+                            <span class="mt-0.5 w-5 h-5 shrink-0 rounded-lg bg-amber-500/20 border border-amber-400/45 flex items-center justify-center font-mono text-[11px] font-bold text-amber-300">2</span>
+                            <span data-i18n="update00Item2">已更改用戶名稱及密碼，現在無法從原始前端程式碼中找到用戶名稱及密碼。</span>
+                        </li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInWithEmailAndPassword, signOut, setPersistence, inMemoryPersistence } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
         function initPortal() {
             try {
@@ -840,7 +896,13 @@
                         dutyBlackboard: '擦黑板',
                         dutyTrash: '倒垃圾',
                         dutySpecialTitle: '特別提醒',
-                        dutySpecialDetail: '鍾鎧汶 (39) -- 3天'
+                        dutySpecialDetail: '鍾鎧汶 (39) -- 3天',
+                        updateLogBtn: '更新日誌',
+                        updateLogTitle: '系統更新日誌',
+                        update00Heading: '更新 0.0：',
+                        update00Time: '時間：2026-11-27 -- 22:20',
+                        update00Item1: '已為本網站新增伺服器，但暫時尚未對外開放。',
+                        update00Item2: '已更改用戶名稱及密碼，現在無法從原始前端程式碼中找到用戶名稱及密碼。'
                     },
                     en: {
                         systemAccess: 'SYSTEM ACCESS',
@@ -894,7 +956,13 @@
                         dutyBlackboard: 'Blackboard (擦黑板)',
                         dutyTrash: 'Trash Duty (倒垃圾)',
                         dutySpecialTitle: 'Special Reminder (特別提醒)',
-                        dutySpecialDetail: '鍾鎧汶 (39) -- 3天'
+                        dutySpecialDetail: '鍾鎧汶 (39) -- 3天',
+                        updateLogBtn: 'Update Log',
+                        updateLogTitle: 'System Update Log',
+                        update00Heading: 'Update 0.0:',
+                        update00Time: 'Time: 2026-11-27 -- 22:20',
+                        update00Item1: 'Added server in this website. But not opening to other where else yet.',
+                        update00Item2: "Changed username and password. Now username and password isn't possible to be found in original front code."
                     }
                 };
 
@@ -919,6 +987,10 @@
                 if (firebaseConfig && firebaseConfig.apiKey) {
                     const firebaseApp = initializeApp(firebaseConfig);
                     firebaseAuth = getAuth(firebaseApp);
+                    // Require fresh login on every page load by clearing cached sessions & using in-memory persistence
+                    setPersistence(firebaseAuth, inMemoryPersistence)
+                        .then(() => signOut(firebaseAuth))
+                        .catch(() => {});
                 }
 
                 // ==========================================
@@ -2113,77 +2185,77 @@
                 document.getElementById('langZhBtn')?.addEventListener('click', () => applyLanguage('zh'));
                 document.getElementById('langEnBtn')?.addEventListener('click', () => applyLanguage('en'));
 
+                // Update Log Modal Handlers
+                const updateLogModal = document.getElementById('updateLogModal');
+                const openUpdateLog = () => {
+                    if (!updateLogModal) return;
+                    updateLogModal.classList.remove('hidden');
+                    updateLogModal.classList.add('flex');
+                };
+                const closeUpdateLog = () => {
+                    if (!updateLogModal) return;
+                    updateLogModal.classList.add('hidden');
+                    updateLogModal.classList.remove('flex');
+                };
+
+                document.getElementById('updateLogBtn')?.addEventListener('click', openUpdateLog);
+                document.getElementById('closeUpdateLogBtn')?.addEventListener('click', closeUpdateLog);
+                updateLogModal?.addEventListener('click', (e) => {
+                    if (e.target === updateLogModal) closeUpdateLog();
+                });
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape' && updateLogModal && !updateLogModal.classList.contains('hidden')) {
+                        closeUpdateLog();
+                    }
+                });
+
                 // ==========================================
-                // 11. Live Macau Clock & 4-Color School Status
+                // 11. Macau Live Clock & School Status Updater
                 // ==========================================
                 function updateMacauTimeAndStatus() {
                     const macau = getMacauNow();
                     const y = macau.getFullYear();
                     const m = String(macau.getMonth() + 1).padStart(2, '0');
                     const d = String(macau.getDate()).padStart(2, '0');
-                    const hours = String(macau.getHours()).padStart(2, '0');
-                    const minutes = String(macau.getMinutes()).padStart(2, '0');
-                    const seconds = String(macau.getSeconds()).padStart(2, '0');
+                    const hh = String(macau.getHours()).padStart(2, '0');
+                    const mm = String(macau.getMinutes()).padStart(2, '0');
+                    const ss = String(macau.getSeconds()).padStart(2, '0');
 
                     const dateEl = document.getElementById('macauDateText');
                     const clockEl = document.getElementById('macauClockText');
+                    const dotEl = document.getElementById('schoolStatusDot');
+                    const statusEl = document.getElementById('schoolStatusText');
+
                     if (dateEl) {
-                        dateEl.textContent = currentLang === 'zh' ? `${y}年${m}月${d}日` : `${y}-${m}-${d}`;
+                        dateEl.textContent = currentLang === 'zh'
+                            ? `${y}年${m}月${d}日`
+                            : `${y}-${m}-${d}`;
                     }
                     if (clockEl) {
-                        clockEl.textContent = `${hours}:${minutes}:${seconds} GMT+8`;
+                        clockEl.textContent = `${hh}:${mm}:${ss}`;
                     }
 
-                    // Status indicator logic (Macau GMT+8)
-                    // Grey = 放學時段 | Red = 午飯 | Yellow = 小息 | Green = 上課中
-                    const dayOfWeek = macau.getDay(); // 0 = Sun, 1 = Mon ... 6 = Sat
-                    const totalMins = macau.getHours() * 60 + macau.getMinutes();
+                    const dayOfWeek = macau.getDay();
+                    const mins = macau.getHours() * 60 + macau.getMinutes();
+                    let statusKey = 'statusAfterSchool';
+                    let dotClass = 'w-2.5 h-2.5 rounded-full bg-gray-400 transition-all duration-300';
 
-                    let statusState = 'green';
-
-                    const isSundayGrey = dayOfWeek === 0;
-                    const isSaturdayGrey = dayOfWeek === 6 && totalMins >= (12 * 60 + 15);
-                    const isWeekdayGrey = dayOfWeek >= 1 && dayOfWeek <= 5 && (totalMins < (8 * 60 + 5) || totalMins >= (15 * 60 + 45));
-
-                    const isWeekdayRed = dayOfWeek >= 1 && dayOfWeek <= 5 && totalMins >= (12 * 60 + 15) && totalMins < (14 * 60 + 15);
-
-                    const isMonToSatYellow = dayOfWeek >= 1 && dayOfWeek <= 6 && (
-                        (totalMins >= (8 * 60 + 45) && totalMins < (9 * 60 + 0)) ||
-                        (totalMins >= (9 * 60 + 40) && totalMins < (9 * 60 + 50)) ||
-                        (totalMins >= (10 * 60 + 30) && totalMins < (10 * 60 + 40)) ||
-                        (totalMins >= (11 * 60 + 20) && totalMins < (11 * 60 + 35))
-                    );
-                    const isWeekdayAfternoonYellow = dayOfWeek >= 1 && dayOfWeek <= 5 && (
-                        totalMins >= (14 * 60 + 55) && totalMins < (15 * 60 + 5)
-                    );
-
-                    if (isSundayGrey || isSaturdayGrey || isWeekdayGrey) {
-                        statusState = 'grey';
-                    } else if (isWeekdayRed) {
-                        statusState = 'red';
-                    } else if (isMonToSatYellow || isWeekdayAfternoonYellow) {
-                        statusState = 'yellow';
-                    }
-
-                    const dotEl = document.getElementById('schoolStatusDot');
-                    const statusTextEl = document.getElementById('schoolStatusText');
-                    if (dotEl && statusTextEl) {
-                        if (statusState === 'grey') {
-                            dotEl.className = 'w-2.5 h-2.5 rounded-full bg-gray-400 transition-all duration-300';
-                            statusTextEl.textContent = translations[currentLang].statusAfterSchool;
-                        } else if (statusState === 'red') {
-                            dotEl.className = 'w-2.5 h-2.5 rounded-full bg-red-500 shadow-[0_0_10px_#ef4444] transition-all duration-300';
-                            statusTextEl.textContent = translations[currentLang].statusLunch;
-                        } else if (statusState === 'yellow') {
-                            dotEl.className = 'w-2.5 h-2.5 rounded-full bg-amber-400 shadow-[0_0_10px_#fbbf24] transition-all duration-300';
-                            statusTextEl.textContent = translations[currentLang].statusRecess;
-                        } else {
-                            dotEl.className = 'w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-[0_0_10px_#34d399] transition-all duration-300';
-                            statusTextEl.textContent = translations[currentLang].statusInClass;
+                    if (dayOfWeek >= 1 && dayOfWeek <= 5) {
+                        if ((mins >= 605 && mins < 625) || (mins >= 705 && mins < 715) || (mins >= 910 && mins < 920)) {
+                            statusKey = 'statusRecess';
+                            dotClass = 'w-2.5 h-2.5 rounded-full bg-amber-400 shadow-[0_0_8px_#fbbf24] transition-all duration-300';
+                        } else if (mins >= 745 && mins < 835) {
+                            statusKey = 'statusLunch';
+                            dotClass = 'w-2.5 h-2.5 rounded-full bg-orange-400 shadow-[0_0_8px_#fb923c] transition-all duration-300';
+                        } else if (mins >= 480 && mins < 960) {
+                            statusKey = 'statusInClass';
+                            dotClass = 'w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399] transition-all duration-300';
                         }
                     }
 
-                    // Auto-rollover calendar highlighting if midnight passes while open
+                    if (dotEl) dotEl.className = dotClass;
+                    if (statusEl) statusEl.textContent = translations[currentLang][statusKey];
+
                     const latestTodayStr = `${y}-${m}-${d}`;
                     if (latestTodayStr !== currentMacauTodayStr) {
                         currentMacauTodayStr = latestTodayStr;
@@ -2192,75 +2264,103 @@
                 }
 
                 setInterval(updateMacauTimeAndStatus, 1000);
-                updateMacauTimeAndStatus();
 
                 // ==========================================
                 // 12. Firebase Login & Logout Handlers
                 // ==========================================
+                const dashboardUserControls = document.getElementById('dashboardUserControls');
                 const loginForm = document.getElementById('loginForm');
+                const loginCard = document.getElementById('loginCard');
                 const loginErrorBox = document.getElementById('loginErrorBox');
                 const loginErrorText = document.getElementById('loginErrorText');
                 const loginSubmitBtn = document.getElementById('loginSubmitBtn');
-                const dashboardUserControls = document.getElementById('dashboardUserControls');
                 const loggedInUserBadge = document.getElementById('loggedInUserBadge');
 
-                function enterDashboard(displayName) {
-                    isLoggedIn = true;
-                    if (loggedInUserBadge) loggedInUserBadge.textContent = displayName || 'USER';
-                    if (dashboardUserControls) {
-                        dashboardUserControls.classList.remove('hidden');
-                        dashboardUserControls.classList.add('flex');
+                // Prevent browser autofill auto-submit or page-cache restore on refresh;
+                // require an explicit trusted press on the Login button even when fields are autofilled.
+                let explicitLoginButtonPress = false;
+                const markTrustedLoginPress = (e) => {
+                    if (e && e.isTrusted) {
+                        explicitLoginButtonPress = true;
                     }
-                    if (loginErrorBox) loginErrorBox.classList.add('hidden');
-                    switchView('dashboard');
-                }
+                };
+                loginSubmitBtn?.addEventListener('pointerdown', markTrustedLoginPress);
+                loginSubmitBtn?.addEventListener('click', markTrustedLoginPress);
+                loginSubmitBtn?.addEventListener('keydown', (e) => {
+                    if (e && e.isTrusted && (e.key === 'Enter' || e.key === ' ')) {
+                        explicitLoginButtonPress = true;
+                    }
+                });
 
-                if (firebaseAuth) {
-                    onAuthStateChanged(firebaseAuth, (user) => {
-                        if (user) {
-                            const rawEmail = user.email || '';
-                            const cleanName = user.displayName || (rawEmail.includes('@') ? rawEmail.split('@')[0] : rawEmail);
-                            enterDashboard(cleanName);
-                        }
-                    });
-                }
+                window.addEventListener('pageshow', () => {
+                    isLoggedIn = false;
+                    explicitLoginButtonPress = false;
+                    if (firebaseAuth) {
+                        signOut(firebaseAuth).catch(() => {});
+                    }
+                    if (dashboardUserControls) {
+                        dashboardUserControls.classList.add('hidden');
+                        dashboardUserControls.classList.remove('flex');
+                    }
+                    switchView('login');
+                });
 
                 loginForm?.addEventListener('submit', async (e) => {
                     e.preventDefault();
+                    const isManualButtonSubmit = Boolean(
+                        e.isTrusted &&
+                        (explicitLoginButtonPress || (e.submitter && e.submitter.id === 'loginSubmitBtn'))
+                    );
+                    explicitLoginButtonPress = false;
+                    if (!isManualButtonSubmit) {
+                        return;
+                    }
+
                     const rawUsername = (document.getElementById('usernameInput')?.value || '').trim();
                     const password = document.getElementById('passwordInput')?.value || '';
 
+                    const showLoginError = (msgKey) => {
+                        if (loginErrorText) loginErrorText.textContent = translations[currentLang][msgKey];
+                        if (loginErrorBox) loginErrorBox.classList.remove('hidden');
+                        if (loginCard) {
+                            loginCard.classList.remove('animate-shake');
+                            void loginCard.offsetWidth;
+                            loginCard.classList.add('animate-shake');
+                        }
+                    };
+
                     if (!rawUsername || !password) {
-                        if (loginErrorText) loginErrorText.textContent = translations[currentLang].loginError;
-                        loginErrorBox?.classList.remove('hidden');
-                        document.getElementById('loginCard')?.classList.add('animate-shake');
-                        setTimeout(() => document.getElementById('loginCard')?.classList.remove('animate-shake'), 400);
+                        showLoginError('loginError');
                         return;
                     }
 
                     if (!firebaseAuth) {
-                        if (loginErrorText) loginErrorText.textContent = translations[currentLang].firebaseConfigError;
-                        loginErrorBox?.classList.remove('hidden');
+                        showLoginError('firebaseConfigError');
                         return;
                     }
 
-                    const email = rawUsername.includes('@')
-                        ? rawUsername
-                        : `${rawUsername.toLowerCase()}@secondary-remarks.firebaseapp.com`;
-
+                    if (loginErrorBox) loginErrorBox.classList.add('hidden');
                     if (loginSubmitBtn) {
                         loginSubmitBtn.disabled = true;
                         loginSubmitBtn.textContent = translations[currentLang].loggingInBtn;
                     }
 
                     try {
+                        const email = rawUsername.includes('@') ? rawUsername : `${rawUsername.toLowerCase()}@s2f.local`;
                         await signInWithEmailAndPassword(firebaseAuth, email, password);
-                        enterDashboard(rawUsername);
-                    } catch (err) {
-                        if (loginErrorText) loginErrorText.textContent = translations[currentLang].loginError;
-                        loginErrorBox?.classList.remove('hidden');
-                        document.getElementById('loginCard')?.classList.add('animate-shake');
-                        setTimeout(() => document.getElementById('loginCard')?.classList.remove('animate-shake'), 400);
+
+                        isLoggedIn = true;
+                        if (loggedInUserBadge) {
+                            loggedInUserBadge.textContent = rawUsername.split('@')[0].toUpperCase();
+                        }
+                        if (dashboardUserControls) {
+                            dashboardUserControls.classList.remove('hidden');
+                            dashboardUserControls.classList.add('flex');
+                        }
+                        refreshAllViews();
+                        switchView('dashboard');
+                    } catch (authErr) {
+                        showLoginError('loginError');
                     } finally {
                         if (loginSubmitBtn) {
                             loginSubmitBtn.disabled = false;
