@@ -838,29 +838,28 @@
                     </div>
                 </div>
 
-                <!-- Two Selection Boxes: 1) Timer (Not active yet), 2) Full screen current time (Active) -->
+                <!-- Two Selection Boxes: 1) Timer (Active), 2) Full screen current time (Active) -->
                 <div class="flex-1 min-h-0 w-full flex items-stretch justify-center py-2">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 w-full h-full">
-                        <!-- Box 1: Timer (Inactive) -->
-                        <div
-                            aria-disabled="true"
-                            class="pointer-events-none relative rounded-3xl bg-[#1a0b05]/60 backdrop-blur-xl border border-amber-500/20 p-8 sm:p-10 text-left opacity-65 select-none flex flex-col justify-between h-full min-h-[220px]"
+                        <!-- Box 1: Countdown Timer (Active) -->
+                        <button
+                            type="button"
+                            id="openCountdownTimerBtn"
+                            class="group relative rounded-3xl bg-[#1a0b05]/85 hover:bg-amber-500/18 backdrop-blur-xl border border-amber-500/40 hover:border-amber-400 p-8 sm:p-10 text-left shadow-[0_0_35px_rgba(245,158,11,0.14)] hover:shadow-[0_0_45px_rgba(245,158,11,0.32)] hover:-translate-y-0.5 transition-all duration-300 cursor-pointer flex flex-col justify-between h-full min-h-[220px]"
                         >
                             <div class="flex items-center justify-between">
-                                <span class="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-400/25 flex items-center justify-center text-amber-300/70">
+                                <span class="w-12 h-12 rounded-2xl bg-amber-500/20 border border-amber-400/45 flex items-center justify-center text-amber-300 group-hover:scale-110 transition-transform">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.9">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                                     </svg>
                                 </span>
-                                <span data-i18n="comingSoonBadge" class="rounded-full bg-amber-500/10 border border-amber-500/25 px-3 py-1 font-mono text-xs text-amber-300/75">
-                                    即將推出
-                                </span>
+                                <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399]"></span>
                             </div>
                             <div class="mt-6">
-                                <h3 data-i18n="timerBoxTitle" class="text-2xl sm:text-3xl font-bold text-amber-100/80">倒計時</h3>
-                                <p data-i18n="timerBoxDesc" class="text-xs sm:text-sm text-amber-200/50 mt-2">倒數計時功能開發中</p>
+                                <h3 data-i18n="timerBoxTitle" class="text-2xl sm:text-3xl font-bold text-amber-50 group-hover:text-amber-200 transition-colors">倒計時</h3>
+                                <p data-i18n="timerBoxDesc" class="text-xs sm:text-sm text-amber-200/75 mt-2">快速預設課堂倒數計時器 (40m / 45m / 1h / 1h20m)</p>
                             </div>
-                        </div>
+                        </button>
 
                         <!-- Box 2: Full screen current time (Active) -->
                         <button
@@ -893,7 +892,7 @@
         <!-- ========================================== -->
         <!-- FULL SCREEN CURRENT TIME OVERLAY VIEW      -->
         <!-- ========================================== -->
-        <section id="fullScreenClockView" class="hidden fixed inset-0 z-40 bg-[#090402]/97 backdrop-blur-2xl flex-col items-center justify-center p-2 sm:p-4 select-none overflow-hidden">
+        <section id="fullScreenClockView" class="hidden fixed inset-0 z-40 bg-[#090402]/68 backdrop-blur-sm flex-col items-center justify-center p-2 sm:p-4 select-none overflow-hidden">
             <!-- Top Right Exit Full Screen Button -->
             <button
                 type="button"
@@ -921,6 +920,142 @@
                     ----年--月--日 星期-
                 </div>
             </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- COUNTDOWN TIMER OVERLAY VIEW               -->
+        <!-- ========================================== -->
+        <section id="countdownTimerView" class="hidden fixed inset-0 z-40 bg-[#090402]/72 backdrop-blur-sm flex-col items-center justify-between p-4 sm:p-6 select-none overflow-y-auto">
+            <!-- Top Bar: Badge + Exit Button -->
+            <div class="w-full flex items-center justify-between gap-3">
+                <div class="inline-flex items-center gap-2 rounded-full bg-[#1a0b05]/85 border border-amber-500/35 px-4 py-2">
+                    <span id="timerStatusDot" class="w-2 h-2 rounded-full bg-amber-400"></span>
+                    <span data-i18n="timerBoxTitle" class="font-mono text-xs sm:text-sm font-bold tracking-wider text-amber-200">倒計時</span>
+                </div>
+
+                <button
+                    type="button"
+                    id="exitCountdownTimerBtn"
+                    class="inline-flex items-center gap-2 rounded-full bg-[#1a0b05]/85 hover:bg-amber-500/25 border border-amber-500/40 hover:border-amber-400 px-4 py-2 text-xs sm:text-sm font-medium text-amber-200 hover:text-amber-50 shadow-[0_0_20px_rgba(245,158,11,0.18)] transition-all cursor-pointer"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                    <span data-i18n="exitTimerBtn">退出計時</span>
+                </button>
+            </div>
+
+            <!-- Main Countdown Display & Controls -->
+            <div class="w-full my-auto flex flex-col items-center justify-center text-center py-4 px-2">
+                <!-- Giant Countdown Digits (Responsive Single-Line Fit for MM:SS & HH:MM:SS) -->
+                <div
+                    id="timerDisplayText"
+                    class="w-full whitespace-nowrap font-mono font-bold text-amber-50 leading-[0.95] tracking-tighter tabular-nums drop-shadow-[0_0_40px_rgba(245,158,11,0.32)] text-[min(14vw,28vh)] transition-colors duration-300"
+                >
+                    40:00
+                </div>
+
+                <!-- Remaining Progress Bar -->
+                <div class="w-full max-w-xl h-2.5 rounded-full bg-[#1a0b05]/90 border border-amber-500/30 overflow-hidden mt-5 mb-7">
+                    <div id="timerProgressBar" class="h-full w-full bg-gradient-to-r from-amber-500 to-orange-400 transition-all duration-500"></div>
+                </div>
+
+                <!-- Preset Duration Buttons (40min, 45min, 1h, 1h20m) -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 w-full max-w-2xl mb-6">
+                    <button
+                        type="button"
+                        data-timer-seconds="2400"
+                        class="timer-preset-btn rounded-2xl bg-amber-500/20 border border-amber-400 px-4 py-3 font-mono text-sm sm:text-base font-bold text-amber-100 shadow-[0_0_20px_rgba(245,158,11,0.22)] transition-all cursor-pointer"
+                    >
+                        40min
+                    </button>
+                    <button
+                        type="button"
+                        data-timer-seconds="2700"
+                        class="timer-preset-btn rounded-2xl bg-[#1a0b05]/85 hover:bg-amber-500/15 border border-amber-500/35 hover:border-amber-400/70 px-4 py-3 font-mono text-sm sm:text-base font-bold text-amber-200 transition-all cursor-pointer"
+                    >
+                        45min
+                    </button>
+                    <button
+                        type="button"
+                        data-timer-seconds="3600"
+                        class="timer-preset-btn rounded-2xl bg-[#1a0b05]/85 hover:bg-amber-500/15 border border-amber-500/35 hover:border-amber-400/70 px-4 py-3 font-mono text-sm sm:text-base font-bold text-amber-200 transition-all cursor-pointer"
+                    >
+                        1h
+                    </button>
+                    <button
+                        type="button"
+                        data-timer-seconds="4800"
+                        class="timer-preset-btn rounded-2xl bg-[#1a0b05]/85 hover:bg-amber-500/15 border border-amber-500/35 hover:border-amber-400/70 px-4 py-3 font-mono text-sm sm:text-base font-bold text-amber-200 transition-all cursor-pointer"
+                    >
+                        1h20m
+                    </button>
+                </div>
+
+                <!-- Active Controls: Start/Pause + Reset -->
+                <div id="timerActiveControls" class="flex flex-wrap items-center justify-center gap-3 sm:gap-4">
+                    <button
+                        type="button"
+                        id="timerStartPauseBtn"
+                        class="min-w-[150px] rounded-2xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-stone-950 font-bold text-base sm:text-lg px-8 py-3.5 shadow-[0_0_28px_rgba(245,158,11,0.35)] transition-all cursor-pointer"
+                    >
+                        開始
+                    </button>
+                    <button
+                        type="button"
+                        id="timerResetBtn"
+                        class="min-w-[120px] rounded-2xl bg-[#1a0b05]/85 hover:bg-amber-500/20 border border-amber-500/40 hover:border-amber-400 text-amber-200 hover:text-amber-50 font-bold text-base sm:text-lg px-6 py-3.5 transition-all cursor-pointer"
+                    >
+                        重設
+                    </button>
+                </div>
+
+                <!-- Timer Ended Options Panel: Option 1 Finish Timer | Option 2 Add 1min / 5min -->
+                <div
+                    id="timerEndedPanel"
+                    class="hidden w-full max-w-xl mt-6 rounded-3xl bg-[#1a0b05]/95 border border-rose-400/60 p-5 sm:p-6 shadow-[0_0_45px_rgba(244,63,94,0.28)]"
+                >
+                    <div class="inline-flex items-center gap-2 rounded-full bg-rose-500/20 border border-rose-400/50 px-3.5 py-1 mb-2.5">
+                        <span class="w-2 h-2 rounded-full bg-rose-400 animate-ping"></span>
+                        <span data-i18n="timerEndedTitle" class="font-mono text-xs sm:text-sm font-bold text-rose-200">倒計時結束！</span>
+                    </div>
+                    <p data-i18n="timerEndedSubtitle" class="text-xs sm:text-sm text-amber-200/80 mb-5">
+                        請選擇結束計時，或延長倒數時間：
+                    </p>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                        <!-- Option 1: Finish Timer -->
+                        <button
+                            type="button"
+                            id="timerFinishBtn"
+                            data-i18n="timerFinishBtn"
+                            class="rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-stone-950 font-bold text-sm sm:text-base px-4 py-3.5 shadow-[0_0_24px_rgba(16,185,129,0.3)] transition-all cursor-pointer"
+                        >
+                            結束計時
+                        </button>
+                        <!-- Option 2: Add 1min / 5min -->
+                        <div class="grid grid-cols-2 gap-2.5">
+                            <button
+                                type="button"
+                                id="timerAdd1MinBtn"
+                                data-i18n="timerAdd1MinBtn"
+                                class="rounded-2xl bg-amber-500/20 hover:bg-amber-500/35 border border-amber-400/60 text-amber-100 font-mono font-bold text-sm sm:text-base px-3 py-3.5 transition-all cursor-pointer"
+                            >
+                                +1 min
+                            </button>
+                            <button
+                                type="button"
+                                id="timerAdd5MinBtn"
+                                data-i18n="timerAdd5MinBtn"
+                                class="rounded-2xl bg-amber-500/20 hover:bg-amber-500/35 border border-amber-400/60 text-amber-100 font-mono font-bold text-sm sm:text-base px-3 py-3.5 transition-all cursor-pointer"
+                            >
+                                +5 min
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="h-4"></div>
         </section>
 
         <!-- ========================================== -->
@@ -1033,24 +1168,175 @@
             innerOrbitGroup.rotation.y = -0.28;
             scene.add(innerOrbitGroup);
 
-            // Ambient Solar Dust Particles
-            const particleCount = 130;
+            // Helper: Procedurally generate soft star & 4-point sparkle star textures
+            function createStarTexture(isSparkle) {
+                const texCanvas = document.createElement("canvas");
+                texCanvas.width = 128;
+                texCanvas.height = 128;
+                const ctx = texCanvas.getContext("2d");
+                const c = 64;
+
+                // Soft radial starlight glow
+                const glow = ctx.createRadialGradient(c, c, 0, c, c, isSparkle ? 54 : 48);
+                glow.addColorStop(0, "rgba(255, 255, 255, 1)");
+                glow.addColorStop(0.22, "rgba(254, 243, 199, 0.85)");
+                glow.addColorStop(0.55, "rgba(245, 158, 11, 0.22)");
+                glow.addColorStop(1, "rgba(245, 158, 11, 0)");
+                ctx.fillStyle = glow;
+                ctx.fillRect(0, 0, 128, 128);
+
+                // Crisp 4-point star rays for sparkle stars
+                if (isSparkle) {
+                    ctx.save();
+                    ctx.translate(c, c);
+
+                    // Primary horizontal & vertical star spikes
+                    for (let r = 0; r < 2; r++) {
+                        ctx.save();
+                        ctx.rotate((r * Math.PI) / 2);
+                        const rayGrad = ctx.createLinearGradient(-60, 0, 60, 0);
+                        rayGrad.addColorStop(0, "rgba(255, 251, 235, 0)");
+                        rayGrad.addColorStop(0.5, "rgba(255, 255, 255, 0.98)");
+                        rayGrad.addColorStop(1, "rgba(255, 251, 235, 0)");
+                        ctx.fillStyle = rayGrad;
+                        ctx.beginPath();
+                        ctx.moveTo(-60, 0);
+                        ctx.quadraticCurveTo(0, -4.5, 60, 0);
+                        ctx.quadraticCurveTo(0, 4.5, -60, 0);
+                        ctx.closePath();
+                        ctx.fill();
+                        ctx.restore();
+                    }
+
+                    // Subtle diagonal star glints
+                    for (let r = 0; r < 2; r++) {
+                        ctx.save();
+                        ctx.rotate(Math.PI / 4 + (r * Math.PI) / 2);
+                        const diagGrad = ctx.createLinearGradient(-28, 0, 28, 0);
+                        diagGrad.addColorStop(0, "rgba(254, 243, 199, 0)");
+                        diagGrad.addColorStop(0.5, "rgba(254, 243, 199, 0.65)");
+                        diagGrad.addColorStop(1, "rgba(254, 243, 199, 0)");
+                        ctx.fillStyle = diagGrad;
+                        ctx.beginPath();
+                        ctx.moveTo(-28, 0);
+                        ctx.quadraticCurveTo(0, -2.2, 28, 0);
+                        ctx.quadraticCurveTo(0, 2.2, -28, 0);
+                        ctx.closePath();
+                        ctx.fill();
+                        ctx.restore();
+                    }
+                    ctx.restore();
+                }
+
+                const texture = new THREE.CanvasTexture(texCanvas);
+                texture.needsUpdate = true;
+                return texture;
+            }
+
+            const softStarTex = createStarTexture(false);
+            const sparkleStarTex = createStarTexture(true);
+
+            // Warm starlight palette (warm white, pale gold, soft amber)
+            const starPalette = [
+                new THREE.Color(0xfffbeb),
+                new THREE.Color(0xfef3c7),
+                new THREE.Color(0xfde68a),
+                new THREE.Color(0xfbbf24)
+            ];
+
+            // Layer 1: Deep Ambient Starfield
+            const particleCount = 260;
             const particlePositions = new Float32Array(particleCount * 3);
-            for (let i = 0; i < particleCount * 3; i += 3) {
-                particlePositions[i] = (Math.random() - 0.5) * 32;
-                particlePositions[i + 1] = (Math.random() - 0.5) * 20;
-                particlePositions[i + 2] = (Math.random() - 0.5) * 14;
+            const particleColors = new Float32Array(particleCount * 3);
+            for (let i = 0; i < particleCount; i++) {
+                particlePositions[i * 3] = (Math.random() - 0.5) * 38;
+                particlePositions[i * 3 + 1] = (Math.random() - 0.5) * 24;
+                particlePositions[i * 3 + 2] = (Math.random() - 0.5) * 16 - 2;
+                const col = starPalette[Math.floor(Math.random() * starPalette.length)];
+                particleColors[i * 3] = col.r;
+                particleColors[i * 3 + 1] = col.g;
+                particleColors[i * 3 + 2] = col.b;
             }
             const particleGeo = new THREE.BufferGeometry();
             particleGeo.setAttribute("position", new THREE.BufferAttribute(particlePositions, 3));
+            particleGeo.setAttribute("color", new THREE.BufferAttribute(particleColors, 3));
             const particleMat = new THREE.PointsMaterial({
-                color: 0xfbbf24,
-                size: 0.065,
+                size: 0.22,
+                map: softStarTex,
+                vertexColors: true,
                 transparent: true,
-                opacity: 0.45
+                opacity: 0.72,
+                depthWrite: false,
+                blending: THREE.AdditiveBlending
             });
             const particles = new THREE.Points(particleGeo, particleMat);
             scene.add(particles);
+
+            // Layer 2: Multi-Group Twinkling 4-Point Sparkle Stars
+            const twinkleLayers = [];
+            const layerSpecs = [
+                { count: 24, size: 0.58, speed: 1.4, phase: 0.0, baseOpacity: 0.55 },
+                { count: 22, size: 0.44, speed: 2.1, phase: 2.1, baseOpacity: 0.5 },
+                { count: 18, size: 0.72, speed: 1.05, phase: 4.2, baseOpacity: 0.48 }
+            ];
+
+            layerSpecs.forEach((spec) => {
+                const pos = new Float32Array(spec.count * 3);
+                const cols = new Float32Array(spec.count * 3);
+                for (let i = 0; i < spec.count; i++) {
+                    pos[i * 3] = (Math.random() - 0.5) * 34;
+                    pos[i * 3 + 1] = (Math.random() - 0.5) * 21;
+                    pos[i * 3 + 2] = (Math.random() - 0.5) * 12 - 1;
+                    const col = starPalette[Math.floor(Math.random() * starPalette.length)];
+                    cols[i * 3] = col.r;
+                    cols[i * 3 + 1] = col.g;
+                    cols[i * 3 + 2] = col.b;
+                }
+                const geo = new THREE.BufferGeometry();
+                geo.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+                geo.setAttribute("color", new THREE.BufferAttribute(cols, 3));
+                const mat = new THREE.PointsMaterial({
+                    size: spec.size,
+                    map: sparkleStarTex,
+                    vertexColors: true,
+                    transparent: true,
+                    opacity: spec.baseOpacity,
+                    depthWrite: false,
+                    blending: THREE.AdditiveBlending
+                });
+                const pts = new THREE.Points(geo, mat);
+                scene.add(pts);
+                twinkleLayers.push({ points: pts, material: mat, ...spec });
+            });
+
+            // Layer 3: Subtle Occasional Shooting Star
+            const shootGeo = new THREE.BufferGeometry().setFromPoints([
+                new THREE.Vector3(0, 0, 0),
+                new THREE.Vector3(-1.8, 0.7, 0)
+            ]);
+            const shootMat = new THREE.LineBasicMaterial({
+                color: 0xfef3c7,
+                transparent: true,
+                opacity: 0,
+                blending: THREE.AdditiveBlending
+            });
+            const shootingStar = new THREE.Line(shootGeo, shootMat);
+            scene.add(shootingStar);
+
+            let shootActive = false;
+            let shootLife = 0;
+            let shootVelocity = new THREE.Vector3(0.24, -0.095, 0);
+            let nextShootTime = performance.now() + 3000;
+
+            function spawnShootingStar() {
+                const startX = (Math.random() - 0.65) * 20;
+                const startY = 4 + Math.random() * 6;
+                const startZ = -3 - Math.random() * 4;
+                shootingStar.position.set(startX, startY, startZ);
+                shootVelocity.set(0.22 + Math.random() * 0.1, -(0.085 + Math.random() * 0.04), 0);
+                shootLife = 0;
+                shootActive = true;
+            }
 
             window.addEventListener("resize", () => {
                 camera.aspect = window.innerWidth / window.innerHeight;
@@ -1058,15 +1344,42 @@
                 renderer.setSize(window.innerWidth, window.innerHeight);
             });
 
-            function animate() {
+            function animate(now) {
                 requestAnimationFrame(animate);
+                const t = (now || 0) * 0.001;
+
                 // Spin purely vertically around the X-axis
                 outerOrbitGroup.rotation.x += 0.0065;
                 innerOrbitGroup.rotation.x -= 0.0048;
-                particles.rotation.y += 0.0006;
+
+                // Gentle starfield drift & multi-phase twinkling
+                particles.rotation.y += 0.00035;
+                particles.rotation.x += 0.0001;
+
+                twinkleLayers.forEach((layer, idx) => {
+                    const pulse = 0.5 + 0.5 * Math.sin(t * layer.speed + layer.phase);
+                    layer.material.opacity = layer.baseOpacity * (0.35 + 0.65 * pulse);
+                    layer.points.rotation.y += (idx % 2 === 0 ? 1 : -1) * 0.00018;
+                });
+
+                // Animate occasional shooting star
+                if (!shootActive && now >= nextShootTime) {
+                    spawnShootingStar();
+                }
+                if (shootActive) {
+                    shootingStar.position.add(shootVelocity);
+                    shootLife += 0.025;
+                    shootMat.opacity = Math.sin(Math.min(shootLife, 1) * Math.PI) * 0.72;
+                    if (shootLife >= 1) {
+                        shootActive = false;
+                        shootMat.opacity = 0;
+                        nextShootTime = now + 5500 + Math.random() * 5500;
+                    }
+                }
+
                 renderer.render(scene, camera);
             }
-            animate();
+            animate(0);
         }
 
         // 3. Main Portal Controller
@@ -1099,10 +1412,20 @@
                     cat7: "倒計時及現在時間",
                     comingSoonBadge: "即將推出",
                     timerBoxTitle: "倒計時",
-                    timerBoxDesc: "倒數計時功能開發中",
+                    timerBoxDesc: "快速預設課堂倒數計時器 (40m / 45m / 1h / 1h20m)",
                     fullScreenClockBoxTitle: "全屏現在時間",
                     fullScreenClockBoxDesc: "全螢幕顯示澳門即時時間與日期",
                     exitFullScreenBtn: "退出全屏",
+                    exitTimerBtn: "退出計時",
+                    timerStartBtn: "開始",
+                    timerPauseBtn: "暫停",
+                    timerResumeBtn: "繼續",
+                    timerResetBtn: "重設",
+                    timerEndedTitle: "倒計時結束！",
+                    timerEndedSubtitle: "請選擇結束計時，或延長倒數時間：",
+                    timerFinishBtn: "結束計時",
+                    timerAdd1MinBtn: "+1 分鐘",
+                    timerAdd5MinBtn: "+5 分鐘",
                     backBtn: "返回主選單",
                     selectedDateLabel: "查詢日期",
                     pastDateLegend: "已過日期",
@@ -1153,10 +1476,20 @@
                     cat7: "Countdown Timer & Current Time",
                     comingSoonBadge: "Coming Soon",
                     timerBoxTitle: "Timer",
-                    timerBoxDesc: "Countdown timer coming soon",
+                    timerBoxDesc: "Quick preset countdown timer (40m / 45m / 1h / 1h20m)",
                     fullScreenClockBoxTitle: "Full Screen Current Time",
                     fullScreenClockBoxDesc: "Display live Macao time and day full screen",
                     exitFullScreenBtn: "Exit Full Screen",
+                    exitTimerBtn: "Exit Timer",
+                    timerStartBtn: "Start",
+                    timerPauseBtn: "Pause",
+                    timerResumeBtn: "Resume",
+                    timerResetBtn: "Reset",
+                    timerEndedTitle: "Time's Up!",
+                    timerEndedSubtitle: "Choose to finish the timer or extend the countdown:",
+                    timerFinishBtn: "Finish Timer",
+                    timerAdd1MinBtn: "+1 min",
+                    timerAdd5MinBtn: "+5 min",
                     backBtn: "Back to Menu",
                     selectedDateLabel: "QUERY DATE",
                     pastDateLegend: "Past",
@@ -1378,6 +1711,14 @@
                 ],
                 "2026-11-30": [
                     {
+                        time: "第二堂",
+                        title: "中文演講比賽",
+                        isHoliday: false,
+                        details: [
+                            "參賽者: 張欣蔓 (15)"
+                        ]
+                    },
+                    {
                         time: "第三堂",
                         title: "遠足前會議",
                         isHoliday: false,
@@ -1412,7 +1753,7 @@
                 ],
                 "2026-12-15": [
                     {
-                        time: "截止日期",
+                        time: "當日",
                         title: "交聖誕壁報",
                         isHoliday: false,
                         details: []
@@ -1461,7 +1802,18 @@
                 "2026-12-31": [{ time: "全天 (2026-12-21 ~ 2026-12-31)", title: "聖誕假 (放假)", isHoliday: true, details: [] }],
                 "2027-01-01": [{ time: "全天 (2027-01-01 ~ 2027-01-03)", title: "元旦 (放假)", isHoliday: true, details: [] }],
                 "2027-01-02": [{ time: "全天 (2027-01-01 ~ 2027-01-03)", title: "元旦 (放假)", isHoliday: true, details: [] }],
-                "2027-01-03": [{ time: "全天 (2027-01-01 ~ 2027-01-03)", title: "元旦 (放假)", isHoliday: true, details: [] }]
+                "2027-01-03": [{ time: "全天 (2027-01-01 ~ 2027-01-03)", title: "元旦 (放假)", isHoliday: true, details: [] }],
+                "2027-01-04": [
+                    {
+                        time: "第五堂",
+                        title: "常識問答比賽",
+                        isHoliday: false,
+                        details: [
+                            "參加人員: 朱珠(2), 林建壹 (10), 崔韓妃 (14)",
+                            "後備: 葉柏豪 (30)"
+                        ]
+                    }
+                ]
             };
 
             // 06. 值日
@@ -2244,6 +2596,7 @@
                 renderTests();
                 renderActivities();
                 renderDutyRoster();
+                updateTimerUI();
             }
 
             langZhBtn?.addEventListener("click", () => applyLanguage("zh"));
@@ -2314,10 +2667,239 @@
             openFullScreenClockBtn?.addEventListener("click", openFullScreenClock);
             exitFullScreenClockBtn?.addEventListener("click", closeFullScreenClock);
 
+            // ==========================================
+            // COUNTDOWN TIMER CONTROLLER (07 -> BOX 1)
+            // ==========================================
+            const countdownTimerView = document.getElementById("countdownTimerView");
+            const openCountdownTimerBtn = document.getElementById("openCountdownTimerBtn");
+            const exitCountdownTimerBtn = document.getElementById("exitCountdownTimerBtn");
+            const timerDisplayText = document.getElementById("timerDisplayText");
+            const timerProgressBar = document.getElementById("timerProgressBar");
+            const timerStatusDot = document.getElementById("timerStatusDot");
+            const timerStartPauseBtn = document.getElementById("timerStartPauseBtn");
+            const timerResetBtn = document.getElementById("timerResetBtn");
+            const timerActiveControls = document.getElementById("timerActiveControls");
+            const timerEndedPanel = document.getElementById("timerEndedPanel");
+            const timerFinishBtn = document.getElementById("timerFinishBtn");
+            const timerAdd1MinBtn = document.getElementById("timerAdd1MinBtn");
+            const timerAdd5MinBtn = document.getElementById("timerAdd5MinBtn");
+            const timerPresetBtns = document.querySelectorAll(".timer-preset-btn");
+
+            let timerBaseSeconds = 2400; // Default 40min
+            let timerTotalSeconds = 2400;
+            let timerRemainingSeconds = 2400;
+            let timerIntervalId = null;
+            let timerIsRunning = false;
+            let timerHasEnded = false;
+
+            function playTimerChime() {
+                try {
+                    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                    if (!AudioCtx) return;
+                    const ctx = new AudioCtx();
+                    const notes = [880, 1174.66, 1318.51];
+                    notes.forEach((freq, i) => {
+                        const osc = ctx.createOscillator();
+                        const gain = ctx.createGain();
+                        osc.type = "sine";
+                        osc.frequency.setValueAtTime(freq, ctx.currentTime + i * 0.22);
+                        gain.gain.setValueAtTime(0.001, ctx.currentTime + i * 0.22);
+                        gain.gain.exponentialRampToValueAtTime(0.22, ctx.currentTime + i * 0.22 + 0.03);
+                        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.22 + 0.45);
+                        osc.connect(gain);
+                        gain.connect(ctx.destination);
+                        osc.start(ctx.currentTime + i * 0.22);
+                        osc.stop(ctx.currentTime + i * 0.22 + 0.5);
+                    });
+                } catch (err) {
+                    console.warn("Audio chime skipped:", err);
+                }
+            }
+
+            function formatCountdown(secs) {
+                const safeSecs = Math.max(0, Math.floor(secs));
+                const hrs = Math.floor(safeSecs / 3600);
+                const mins = Math.floor((safeSecs % 3600) / 60);
+                const remSecs = safeSecs % 60;
+                if (hrs > 0) {
+                    return `${String(hrs).padStart(2, "0")}:${String(mins).padStart(2, "0")}:${String(remSecs).padStart(2, "0")}`;
+                }
+                return `${String(mins).padStart(2, "0")}:${String(remSecs).padStart(2, "0")}`;
+            }
+
+            function highlightSelectedPreset(seconds) {
+                timerPresetBtns.forEach((btn) => {
+                    const btnSec = Number(btn.getAttribute("data-timer-seconds"));
+                    if (btnSec === seconds) {
+                        btn.className = "timer-preset-btn rounded-2xl bg-amber-500/20 border border-amber-400 px-4 py-3 font-mono text-sm sm:text-base font-bold text-amber-100 shadow-[0_0_20px_rgba(245,158,11,0.22)] transition-all cursor-pointer";
+                    } else {
+                        btn.className = "timer-preset-btn rounded-2xl bg-[#1a0b05]/85 hover:bg-amber-500/15 border border-amber-500/35 hover:border-amber-400/70 px-4 py-3 font-mono text-sm sm:text-base font-bold text-amber-200 transition-all cursor-pointer";
+                    }
+                });
+            }
+
+            function updateTimerUI() {
+                const t = translations[currentLang];
+                if (timerDisplayText) {
+                    timerDisplayText.textContent = formatCountdown(timerRemainingSeconds);
+                    if (timerHasEnded) {
+                        timerDisplayText.classList.add("text-rose-400");
+                        timerDisplayText.classList.remove("text-amber-50");
+                    } else {
+                        timerDisplayText.classList.remove("text-rose-400");
+                        timerDisplayText.classList.add("text-amber-50");
+                    }
+                }
+
+                if (timerProgressBar) {
+                    const pct = timerTotalSeconds > 0 ? Math.max(0, Math.min(100, (timerRemainingSeconds / timerTotalSeconds) * 100)) : 0;
+                    timerProgressBar.style.width = `${pct}%`;
+                    if (timerHasEnded || timerRemainingSeconds <= 60) {
+                        timerProgressBar.className = "h-full bg-gradient-to-r from-rose-500 to-amber-500 transition-all duration-500";
+                    } else {
+                        timerProgressBar.className = "h-full bg-gradient-to-r from-amber-500 to-orange-400 transition-all duration-500";
+                    }
+                }
+
+                if (timerStatusDot) {
+                    if (timerHasEnded) {
+                        timerStatusDot.className = "w-2 h-2 rounded-full bg-rose-400 animate-ping";
+                    } else if (timerIsRunning) {
+                        timerStatusDot.className = "w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399]";
+                    } else {
+                        timerStatusDot.className = "w-2 h-2 rounded-full bg-amber-400";
+                    }
+                }
+
+                if (timerStartPauseBtn) {
+                    if (timerIsRunning) {
+                        timerStartPauseBtn.textContent = t.timerPauseBtn;
+                    } else if (timerRemainingSeconds < timerTotalSeconds && timerRemainingSeconds > 0) {
+                        timerStartPauseBtn.textContent = t.timerResumeBtn;
+                    } else {
+                        timerStartPauseBtn.textContent = t.timerStartBtn;
+                    }
+                }
+
+                if (timerResetBtn) {
+                    timerResetBtn.textContent = t.timerResetBtn;
+                }
+
+                if (timerEndedPanel && timerActiveControls) {
+                    if (timerHasEnded) {
+                        timerEndedPanel.classList.remove("hidden");
+                        timerActiveControls.classList.add("hidden");
+                    } else {
+                        timerEndedPanel.classList.add("hidden");
+                        timerActiveControls.classList.remove("hidden");
+                    }
+                }
+            }
+
+            function stopTimerInterval() {
+                if (timerIntervalId !== null) {
+                    clearInterval(timerIntervalId);
+                    timerIntervalId = null;
+                }
+                timerIsRunning = false;
+            }
+
+            function startTimerCountdown() {
+                if (timerRemainingSeconds <= 0) return;
+                stopTimerInterval();
+                timerHasEnded = false;
+                timerIsRunning = true;
+                updateTimerUI();
+
+                timerIntervalId = setInterval(() => {
+                    if (timerRemainingSeconds > 0) {
+                        timerRemainingSeconds -= 1;
+                    }
+                    if (timerRemainingSeconds <= 0) {
+                        timerRemainingSeconds = 0;
+                        stopTimerInterval();
+                        timerHasEnded = true;
+                        playTimerChime();
+                    }
+                    updateTimerUI();
+                }, 1000);
+            }
+
+            function selectTimerPreset(seconds) {
+                stopTimerInterval();
+                timerBaseSeconds = seconds;
+                timerTotalSeconds = seconds;
+                timerRemainingSeconds = seconds;
+                timerHasEnded = false;
+                highlightSelectedPreset(seconds);
+                updateTimerUI();
+            }
+
+            function extendTimer(extraSeconds) {
+                stopTimerInterval();
+                timerHasEnded = false;
+                timerTotalSeconds = extraSeconds;
+                timerRemainingSeconds = extraSeconds;
+                startTimerCountdown();
+            }
+
+            function openCountdownTimer() {
+                if (!isAuthenticated || !countdownTimerView) return;
+                updateTimerUI();
+                countdownTimerView.classList.remove("hidden");
+                countdownTimerView.classList.add("flex");
+            }
+
+            function closeCountdownTimer() {
+                if (!countdownTimerView) return;
+                stopTimerInterval();
+                timerHasEnded = false;
+                countdownTimerView.classList.add("hidden");
+                countdownTimerView.classList.remove("flex");
+                updateTimerUI();
+            }
+
+            openCountdownTimerBtn?.addEventListener("click", openCountdownTimer);
+            exitCountdownTimerBtn?.addEventListener("click", closeCountdownTimer);
+
+            timerPresetBtns.forEach((btn) => {
+                btn.addEventListener("click", () => {
+                    const sec = Number(btn.getAttribute("data-timer-seconds"));
+                    if (sec > 0) selectTimerPreset(sec);
+                });
+            });
+
+            timerStartPauseBtn?.addEventListener("click", () => {
+                if (timerIsRunning) {
+                    stopTimerInterval();
+                    updateTimerUI();
+                } else {
+                    startTimerCountdown();
+                }
+            });
+
+            timerResetBtn?.addEventListener("click", () => {
+                selectTimerPreset(timerBaseSeconds);
+            });
+
+            timerFinishBtn?.addEventListener("click", () => {
+                selectTimerPreset(timerBaseSeconds);
+                closeCountdownTimer();
+            });
+
+            timerAdd1MinBtn?.addEventListener("click", () => {
+                extendTimer(60);
+            });
+
+            timerAdd5MinBtn?.addEventListener("click", () => {
+                extendTimer(300);
+            });
+
             document.addEventListener("keydown", (e) => {
                 if (e.key === "Escape") {
                     closeUpdateLog();
                     closeFullScreenClock();
+                    closeCountdownTimer();
                 }
             });
 
@@ -2413,6 +2995,7 @@
                 isAuthenticated = false;
                 explicitSubmitAttempted = false;
                 closeFullScreenClock();
+                closeCountdownTimer();
                 if (usernameInput) {
                     usernameInput.value = "";
                     usernameInput.setAttribute("readonly", "readonly");
